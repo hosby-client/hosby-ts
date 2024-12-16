@@ -21,14 +21,15 @@
     "axios": "^1.7.9"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
   },
   "files": [
     "dist"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/hosby-client/hosby-ts.git"
+    "url": "git+https://github.com/hosby-client/hosby-ts.git"
   },
   "bugs": {
     "url": "https://github.com/hosby-client/hosby-ts/issues"
