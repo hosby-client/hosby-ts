@@ -1,0 +1,37 @@
+{
+  "name": "hosby-client",
+  "version": "1.0.0",
+  "description": "TypeScript client library to consume APIs created on Hosby.",
+  "main": "dist/index.js",
+  "types": "dist/hosby.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "hosby",
+    "api-client",
+    "typescript",
+    "csrf"
+  ],
+  "author": "hosby Inc",
+  "license": "MIT license",
+  "dependencies": {
+    "axios": "^1.7.9"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hosby-client/hosby-ts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hosby-client/hosby-ts/issues"
+  },
+  "homepage": "https://github.com/TonNom/hosby-client#readme"
+}
