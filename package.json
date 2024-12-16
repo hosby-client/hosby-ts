@@ -18,10 +18,8 @@
   ],
   "author": "hosby Inc",
   "license": "MIT license",
-  "dependencies": {
-    "axios": "^1.7.9"
-  },
   "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.2",
     "axios-mock-adapter": "^2.1.0",
@@ -39,5 +37,9 @@
   "bugs": {
     "url": "https://github.com/hosby-client/hosby-ts/issues"
   },
-  "homepage": "https://github.com/TonNom/hosby-client#readme"
+  "homepage": "https://github.com/TonNom/hosby-client#readme",
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "jsencrypt": "^3.3.2"
+  }
 }
