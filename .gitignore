@@ -10,6 +10,7 @@ lerna-debug.log*
 # production
 /build
 /dist
+/tests
 
 #CI/CD
 .gitlab-ci.yml
