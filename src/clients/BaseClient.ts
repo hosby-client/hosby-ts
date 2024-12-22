@@ -1,10 +1,11 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import { TBaseClient } from "../types";
 
 export class BaseClient {
   protected axiosInstance: AxiosInstance;
   protected csrfToken?: string;
 
-  constructor(baseURL: string, apiKey: string) {
+  constructor({ baseURL, apiKey }: TBaseClient) {
     this.axiosInstance = axios.create({
       baseURL,
       headers: {
@@ -33,6 +34,8 @@ export class BaseClient {
     if (this.csrfToken) {
       headers["x-csrf-token"] = this.csrfToken;
     }
+
+    headers["x-hosby-key"]  = "X_CLIENT_1000";
 
     try {
       const response = await this.axiosInstance.request<T>({
