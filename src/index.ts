@@ -8,7 +8,7 @@ export class HosbyClient {
   private baseClient: BaseClient;
 
   constructor(baseURL: string, apiKey: string) {
-    this.baseClient = new BaseClient(baseURL, apiKey);
+    this.baseClient = new BaseClient({ baseURL, apiKey });
     this.crud = new CrudClient(this.baseClient);
     this.bulk = new BulkClient(this.baseClient);
   }

@@ -3,8 +3,8 @@ import { BaseClient } from "./BaseClient";
 
 
 export class BulkClient {
-    constructor(private baseClient: BaseClient) { }
 
+    constructor(private baseClient: BaseClient) { }
 
     /**
      * 
