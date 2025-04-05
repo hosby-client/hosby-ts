@@ -1,0 +1,101 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly for ongoing monitoring
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run security audit
+        run: npm audit --audit-level=high
+        continue-on-error: true  # Prevents build failure for low-severity issues
+      
+      - name: Run SAST scan with ESLint security plugins
+        run: |
+          # Install eslint v9 and security plugins
+          npm install -D eslint@latest eslint-plugin-security @typescript-eslint/eslint-plugin typescript-eslint @eslint/js
+          
+          # Create temporary eslint.config.js with security rules
+          cat > eslint.config.js << 'EOF'
+          import eslint from '@eslint/js';
+          import tseslint from 'typescript-eslint';
+          import securityPlugin from 'eslint-plugin-security';
+          
+          export default tseslint.config(
+            eslint.configs.recommended,
+            ...tseslint.configs.recommended,
+            {
+              plugins: {
+                security: securityPlugin,
+              },
+              files: ['**/*.ts'],
+              languageOptions: {
+                parser: tseslint.parser,
+                parserOptions: {
+                  project: './tsconfig.json',
+                  ecmaVersion: 2020,
+                  sourceType: 'module',
+                },
+              },
+              rules: {
+                'security/detect-object-injection': 'warn',
+                'security/detect-non-literal-regexp': 'warn',
+                'security/detect-non-literal-require': 'warn',
+                'security/detect-eval-with-expression': 'error',
+                'security/detect-buffer-noassert': 'error',
+                'security/detect-child-process': 'warn',
+                'security/detect-disable-mustache-escape': 'error',
+                'security/detect-no-csrf-before-method-override': 'error',
+                'security/detect-unsafe-regex': 'warn',
+                '@typescript-eslint/explicit-function-return-type': 'warn',
+                '@typescript-eslint/no-explicit-any': 'warn',
+                '@typescript-eslint/no-unused-vars': 'error',
+                'no-console': 'warn',
+              },
+              ignores: ['node_modules', 'dist', '__tests__'],
+            },
+          );
+          EOF
+          
+          # Run ESLint with security plugin
+          npx eslint . --ext .ts
+      
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'hosby-ts'
+          path: '.'
+          format: 'HTML'
+          out: 'reports'
+          args: >
+            --failOnCVSS 7
+            --enableRetired
+      
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+      
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        if: always()  # Ensure this runs even if previous steps fail
+        with:
+          name: security-reports
+          path: reports/
+          retention-days: 7
