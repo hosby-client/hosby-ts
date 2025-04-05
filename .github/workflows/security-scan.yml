@@ -68,4 +68,7 @@ jobs:
           
           # Exécuter ESLint avec la nouvelle configuration
           # Utiliser le motif glob au lieu de --ext
-          npx eslint "src/**/*.ts" "tests/**/*.ts"
+          # Exécuter ESLint avec la nouvelle configuration
+          # Utiliser uniquement les patterns qui existent vraiment dans votre projet
+          # Ajouter --no-error-on-unmatched-pattern pour éviter l'erreur
+          npx eslint "src/**/*.ts" --no-error-on-unmatched-pattern
