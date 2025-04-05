@@ -10,7 +10,7 @@
     "prepublishOnly": "npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint \"src/**/*.ts\""
   },
   "keywords": [
     "hosby",
