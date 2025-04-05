@@ -1,0 +1,74 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  static-analysis:
+    name: Static Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run SAST scan with ESLint security plugins
+        run: |
+          # Créer un fichier eslint.config.js pour ESLint v9 (compatible avec ES modules)
+          cat > eslint.config.js << 'EOF'
+          import eslint from '@eslint/js';
+          import tseslint from 'typescript-eslint';
+          import securityPlugin from 'eslint-plugin-security';
+
+          export default tseslint.config(
+            eslint.configs.recommended,
+            ...tseslint.configs.recommended,
+            {
+              plugins: {
+                security: securityPlugin,
+              },
+              files: ['**/*.ts'],
+              languageOptions: {
+                parser: tseslint.parser,
+                parserOptions: {
+                  project: './tsconfig.json',
+                  ecmaVersion: 2020,
+                  sourceType: 'module',
+                },
+              },
+              rules: {
+                'security/detect-object-injection': 'warn',
+                'security/detect-non-literal-regexp': 'warn',
+                'security/detect-non-literal-require': 'warn',
+                'security/detect-eval-with-expression': 'error',
+                'security/detect-buffer-noassert': 'error',
+                'security/detect-child-process': 'warn',
+                'security/detect-disable-mustache-escape': 'error',
+                'security/detect-no-csrf-before-method-override': 'error',
+                'security/detect-unsafe-regex': 'warn',
+                '@typescript-eslint/explicit-function-return-type': 'warn',
+                '@typescript-eslint/no-explicit-any': 'warn',
+                'no-console': 'warn',
+              },
+              ignores: ['node_modules', 'dist', '__tests__'],
+            },
+          );
+          EOF
+          
+          # Exécuter ESLint avec la nouvelle configuration
+          # Utiliser le motif glob au lieu de --ext
+          # Exécuter ESLint avec la nouvelle configuration
+          # Utiliser uniquement les patterns qui existent vraiment dans votre projet
+          # Ajouter --no-error-on-unmatched-pattern pour éviter l'erreur
+          npx eslint "src/**/*.ts" --no-error-on-unmatched-pattern

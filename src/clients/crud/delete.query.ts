@@ -328,7 +328,7 @@ export class DeleteQueryClient {
     async deleteById<T>(
         project: string,
         table: string,
-        queryFilters: { field: string, value: any }[],
+        queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
         if (!project || !table || !queryFilters?.length) {
