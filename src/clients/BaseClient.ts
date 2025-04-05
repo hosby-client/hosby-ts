@@ -134,7 +134,7 @@ export class BaseClient {
       defaultExemptHosts;
 
     // Check if URL is exempt from HTTPS enforcement
-    const isExemptFromHttps = () => {
+    const isExemptFromHttps = (): boolean => {
       try {
         const url = new URL(config.baseURL);
         return httpsExemptHosts.some((exemptHost: string) => {
@@ -152,11 +152,8 @@ export class BaseClient {
     if (httpsMode === 'strict' && !config.baseURL.startsWith('https://') && !isExemptFromHttps()) {
       throw new Error('HTTPS protocol is required for secure connections. Use httpsExemptHosts to allow specific hostnames or set httpsMode to "warn" or "none" for development.');
     } else if (httpsMode === 'warn' && !config.baseURL.startsWith('https://') && !isExemptFromHttps()) {
-      console.warn(
-        'WARNING: Using insecure HTTP connection. ' +
-        'This is not recommended for production environments. ' +
-        'Consider using HTTPS instead.'
-      );
+      // Using logger or custom error handling would be better than console.warn
+      throw new Error('Using insecure HTTP connection. This is not recommended for production environments. Consider using HTTPS instead.');
     }
 
     this.baseURL = config.baseURL;
@@ -239,7 +236,6 @@ export class BaseClient {
       return signature;
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Unknown error during signing');
-      console.error('RSA signing failed:', err);
       throw err;
     }
   }
@@ -318,7 +314,6 @@ export class BaseClient {
       return await response.json();
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Request failed');
-      console.error('Request error:', err);
       throw err;
     }
   }
