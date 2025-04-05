@@ -1,6 +1,6 @@
 {
   "name": "hosby-client",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "TypeScript client library to consume APIs created on Hosby.",
   "main": "dist/index.js",
   "types": "dist/hosby.d.ts",
@@ -14,7 +14,8 @@
     "hosby",
     "api-client",
     "typescript",
-    "csrf"
+    "csrf",
+    "Backend As A Service"
   ],
   "author": "hosby Inc",
   "license": "MIT license",
@@ -22,7 +23,6 @@
     "@types/crypto-js": "^4.2.2",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.2",
-    "axios-mock-adapter": "^2.1.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.2.5",
     "typescript": "^5.7.2"
