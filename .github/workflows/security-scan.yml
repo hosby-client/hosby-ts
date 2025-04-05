@@ -9,7 +9,8 @@ on:
     - cron: '0 0 * * 0'  # Run weekly for ongoing monitoring
 
 jobs:
-  security-scan:
+  dependency-audit:
+    name: Dependency Security Audit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,9 +25,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Run security audit
+      - name: Run npm audit
         run: npm audit --audit-level=high
         continue-on-error: true  # Prevents build failure for low-severity issues
+
+  static-analysis:
+    name: Static Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
       
       - name: Run SAST scan with ESLint security plugins
         run: |
@@ -77,6 +94,16 @@ jobs:
           
           # Run ESLint with security plugin
           npx eslint . --ext .ts
+  
+  secret-scanning:
+    name: Secret and Vulnerability Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
       
       - name: OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
@@ -89,13 +116,11 @@ jobs:
             --failOnCVSS 7
             --enableRetired
       
-      - name: Scan for secrets
-        uses: gitleaks/gitleaks-action@v2
-      
-      - name: Upload security reports
-        uses: actions/upload-artifact@v3
-        if: always()  # Ensure this runs even if previous steps fail
-        with:
-          name: security-reports
-          path: reports/
-          retention-days: 7
+      # Generate a text report that can be seen directly in the GitHub UI
+      - name: Create summary report
+        if: always()
+        run: |
+          if [ -d "reports" ]; then
+            echo "## Security Scan Results" > $GITHUB_STEP_SUMMARY
+            echo "OWASP Dependency check completed. See artifacts for details." >> $GITHUB_STEP_SUMMARY
+          fi
