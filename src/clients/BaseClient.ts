@@ -7,12 +7,89 @@ import { formatPEM } from "../utils/formatPem";
  * Configuration interface for secure RSA authentication
  */
 export interface SecureClientConfig extends BaseClientConfig {
-  /** Request timeout in milliseconds */
+  /** 
+   * HTTPS enforcement mode:
+   * - 'strict': Always require HTTPS (good for production)
+   * - 'warn': Allow HTTP but log warning (good for development) 
+   * - 'none': No HTTPS checks (use with caution)
+   * Defaults to 'warn' to balance security and development needs
+   */
+  httpsMode?: 'strict' | 'warn' | 'none';
+
+  /**
+   * Hostnames that are exempt from HTTPS enforcement
+   * Useful for allowing local development environments
+   * Example: ['localhost', '127.0.0.1', '.local']
+   */
+  httpsExemptHosts?: string[];
+
+  /** 
+   * Request timeout in milliseconds.
+   * Requests that take longer than this will be aborted.
+   * Defaults to no timeout if not specified.
+   * @example
+   * ```typescript
+   * // Timeout after 5 seconds
+   * const client = new BaseClient({
+   *   baseURL: 'https://api.example.com',
+   *   timeout: 5000
+   * });
+   * ```
+   */
   timeout?: number;
-  /** Number of retry attempts for failed requests */
+
+  /** 
+   * Number of retry attempts for failed requests.
+   * If a request fails due to network issues or server errors,
+   * it will be retried up to this many times before giving up.
+   * Defaults to 0 (no retries) if not specified.
+   * @example
+   * ```typescript
+   * // Retry failed requests up to 3 times
+   * const client = new BaseClient({
+   *   baseURL: 'https://api.example.com',
+   *   retryAttempts: 3
+   * });
+   * ```
+   */
   retryAttempts?: number;
-  /** Whether to use secure HTTPS connections */
+
+  /** 
+   * Whether to enforce secure HTTPS connections.
+   * When true, requests will only be made over HTTPS.
+   * When false, both HTTP and HTTPS are allowed.
+   * For more granular control, use httpsMode instead.
+   * @deprecated Use httpsMode for more control over HTTPS enforcement
+   * @example
+   * ```typescript
+   * // Require HTTPS connections
+   * const client = new BaseClient({
+   *   baseURL: 'https://api.example.com',
+   *   secure: true
+   * });
+   * ```
+   */
   secure?: boolean;
+
+  /**
+   * RSA private key for request signing
+   */
+  privateKey: string;
+
+  /**
+   * Public key identifier
+   */
+  publicKeyId: string;
+
+  /**
+   * Project identifier
+   */
+  projectId: string;
+
+  /**
+   * User identifier
+   */
+  userId: string;
 }
 
 /**
@@ -49,10 +126,43 @@ export class BaseClient {
       throw new Error('Base URL is required');
     }
 
+    // Get HTTPS enforcement mode (default to 'warn')
+    const httpsMode = 'httpsMode' in config ? config.httpsMode : 'warn';
+    const defaultExemptHosts: string[] = ['localhost', '127.0.0.1', '.local', '.test'];
+    const httpsExemptHosts: string[] = 'httpsExemptHosts' in config && Array.isArray(config.httpsExemptHosts) ?
+      config.httpsExemptHosts :
+      defaultExemptHosts;
+
+    // Check if URL is exempt from HTTPS enforcement
+    const isExemptFromHttps = () => {
+      try {
+        const url = new URL(config.baseURL);
+        return httpsExemptHosts.some((exemptHost: string) => {
+          if (exemptHost.startsWith('.')) {
+            return url.hostname.endsWith(exemptHost);
+          }
+          return url.hostname === exemptHost;
+        });
+      } catch {
+        return false;
+      }
+    };
+
+    // Enforce HTTPS based on mode and exemptions
+    if (httpsMode === 'strict' && !config.baseURL.startsWith('https://') && !isExemptFromHttps()) {
+      throw new Error('HTTPS protocol is required for secure connections. Use httpsExemptHosts to allow specific hostnames or set httpsMode to "warn" or "none" for development.');
+    } else if (httpsMode === 'warn' && !config.baseURL.startsWith('https://') && !isExemptFromHttps()) {
+      console.warn(
+        'WARNING: Using insecure HTTP connection. ' +
+        'This is not recommended for production environments. ' +
+        'Consider using HTTPS instead.'
+      );
+    }
+
     this.baseURL = config.baseURL;
     this.authConfig = {
       privateKey: '',
-      publicKeyId: '', 
+      publicKeyId: '',
       projectId: '',
       userId: '',
       apiKey: ''
@@ -60,26 +170,25 @@ export class BaseClient {
 
     if (this.isSecureConfig(config)) {
       const { privateKey, publicKeyId, projectId, userId } = config;
-      
+
       // Validate all required secure config fields
       const missingFields = [
         ['privateKey', privateKey],
-        ['publicKeyId', publicKeyId], 
+        ['publicKeyId', publicKeyId],
         ['projectId', projectId],
         ['userId', userId]
-      ].filter(([field, value]) => !value)
-       .map(([field]) => field);
+      ].filter(([, value]) => !value)
+        .map(([field]) => field);
 
       if (missingFields.length > 0) {
         throw new Error(`Missing required secure config fields: ${missingFields.join(', ')}`);
       }
 
-      // Type-safe assignment of secure config
       this.authConfig = {
         ...this.authConfig,
         privateKey,
         publicKeyId,
-        projectId, 
+        projectId,
         userId
       };
 
@@ -188,7 +297,7 @@ export class BaseClient {
       if (options.slice) queryHeader['x-slice'] = options.slice;
 
       if (Object.keys(queryHeader).length > 0) {
-        (headers as Record<string, string>)['x-query'] = JSON.stringify(queryHeader);
+        headers['x-query'] = JSON.stringify(queryHeader);
       }
     }
 
@@ -219,8 +328,8 @@ export class BaseClient {
    * @private
    * @returns Headers object with auth credentials
    */
-  private buildHeaders(): HeadersInit {
-    const headers: HeadersInit = {
+  private buildHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     };
@@ -239,11 +348,9 @@ export class BaseClient {
       const apiKey = `${publicKeyId}_${projectId}_${userId}`;
       const signature = this.signWithPrivateKey(`${apiKey}:${timestamp}`, privateKey);
 
-      Object.assign(headers, {
-        'x-signature': signature,
-        'x-timestamp': timestamp,
-        'x-api-key': apiKey
-      });
+      headers['x-signature'] = signature;
+      headers['x-timestamp'] = timestamp;
+      headers['x-api-key'] = apiKey;
     }
 
     return headers;
