@@ -102,8 +102,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Scan for secrets
-        uses: gitleaks/gitleaks-action@v2
+      # Note: Gitleaks now requires a license for organizations
+      # Alternative free secret scanner using trufflehog
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@v3.59.0
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
       
       - name: OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
