@@ -70,26 +70,6 @@ export interface SecureClientConfig extends BaseClientConfig {
    * ```
    */
   secure?: boolean;
-
-  /**
-   * RSA private key for request signing
-   */
-  privateKey: string;
-
-  /**
-   * Public key identifier
-   */
-  publicKeyId: string;
-
-  /**
-   * Project identifier
-   */
-  projectId: string;
-
-  /**
-   * User identifier
-   */
-  userId: string;
 }
 
 /**
@@ -108,12 +88,12 @@ export interface SecureClientConfig extends BaseClientConfig {
 export class BaseClient {
   private readonly baseURL: string;
   private csrfToken?: string;
+  private jwToken?: string;
   private readonly authConfig: {
     privateKey: string;
     publicKeyId: string;
     projectId: string;
     userId: string;
-    apiKey: string;
   };
 
   /**
@@ -161,10 +141,8 @@ export class BaseClient {
       privateKey: '',
       publicKeyId: '',
       projectId: '',
-      userId: '',
-      apiKey: ''
+      userId: ''
     };
-
     if (this.isSecureConfig(config)) {
       const { privateKey, publicKeyId, projectId, userId } = config;
 
@@ -188,14 +166,8 @@ export class BaseClient {
         projectId,
         userId
       };
-
-    } else if ('apiKey' in config && typeof config.apiKey === 'string') {
-      this.authConfig = {
-        ...this.authConfig,
-        apiKey: config.apiKey
-      };
     } else {
-      throw new Error('Either API key or secure config is required');
+      throw new Error('Secure config is required with privateKey, publicKeyId, userId and projectId');
     }
   }
 
@@ -225,10 +197,13 @@ export class BaseClient {
       const signer = new JSEncrypt();
       signer.setPrivateKey(formattedKey);
 
-      const hashData = (input: string): string =>
-        CryptoJS.SHA256(input).toString(CryptoJS.enc.Hex);
+      CryptoJS.SHA256(data).toString(CryptoJS.enc.Hex);
 
-      const signature = signer.sign(data, hashData, 'sha256');
+      const hashFunction = (input: string): string => {
+        return CryptoJS.SHA256(input).toString(CryptoJS.enc.Hex);
+      };
+
+      const signature = signer.sign(data, hashFunction, 'sha256');
       if (!signature) {
         throw new Error('Failed to generate signature');
       }
@@ -306,15 +281,56 @@ export class BaseClient {
     try {
       const response = await fetch(url.toString(), requestOptions);
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: response.statusText }));
-        throw errorData;
+      if (!response) {
+        throw {
+          success: false,
+          status: 500,
+          message: 'Empty response received'
+        };
       }
 
-      return await response.json();
+      // Check for Authorization header
+      const authHeader = response.headers.get('Authorization');
+      if (authHeader) {
+        this.jwToken = authHeader.replace('Bearer ', '');
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+        // Format error response consistently
+        throw {
+          success: false,
+          status: response.status,
+          message: errorData.message || 'Resource not found',
+          ...errorData
+        };
+      }
+
+      const jsonResponse = await response.json();
+      if (!jsonResponse) {
+        throw {
+          success: false,
+          status: 500,
+          message: 'Empty response received'
+        };
+      }
+
+      return jsonResponse;
+
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Request failed');
-      throw err;
+      // Check if it's a structured error we created
+      if (error && typeof error === 'object' && 'success' in error) {
+        throw error;
+      }
+
+      // For network errors, missing responses, or other exceptions
+      const standardError = {
+        success: false,
+        status: 500,
+        message: error instanceof Error ? error.message : 'Request failed'
+      };
+
+      throw standardError;
     }
   }
 
@@ -333,8 +349,8 @@ export class BaseClient {
       headers['x-csrf-token'] = this.csrfToken;
     }
 
-    if (this.authConfig.apiKey) {
-      headers['Authorization'] = `Bearer ${this.authConfig.apiKey}`;
+    if (this.jwToken) {
+      headers['Authorization'] = `Bearer ${this.jwToken}`;
     }
 
     const { privateKey, publicKeyId, projectId, userId } = this.authConfig;

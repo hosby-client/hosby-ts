@@ -1,0 +1,854 @@
+// Mock JSEncrypt and window before importing anything
+jest.mock('jsencrypt', () => {
+    return {
+        __esModule: true,
+        default: jest.fn().mockImplementation(() => ({
+            setPrivateKey: jest.fn(),
+            sign: jest.fn().mockReturnValue('mocked-signature')
+        }))
+    };
+});
+
+// Mock window object
+global.window = {} as any;
+
+import { HosbyClient } from '../../src';
+import { ApiResponse, QueryFilter } from '../../src/types';
+
+/**
+ * This file demonstrates how to mock API requests when using the Hosby Client.
+ * These examples show different approaches for mocking:
+ * 1. Global fetch mocking for all tests
+ * 2. Individual test mocking
+ * 3. Mock factory approach
+ * 4. Response customization based on request parameters
+ */
+
+// Example model interfaces
+interface User {
+    id: string;
+    name: string;
+    email: string;
+    active: boolean;
+    profile?: UserProfile;
+}
+
+interface UserProfile {
+    avatar: string;
+    bio: string;
+}
+
+// APPROACH 1: Global mock setup
+// Mock fetch globally
+global.fetch = jest.fn();
+
+describe('MockingRequests Example - Global Mocking', () => {
+    // Define test client and config
+    let client: HosbyClient;
+
+    beforeAll(() => {
+        // Set up default mock response for CSRF token fetch
+        (global.fetch as jest.Mock).mockResolvedValue({
+            ok: true,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({
+                success: true,
+                data: { token: 'mock-csrf-token' }
+            }),
+            status: 200
+        });
+    });
+
+    beforeEach(async () => {
+        // Create a new client for each test
+        client = new HosbyClient({
+            baseURL: 'https://api.hosby.com',
+            privateKey: 'test-private-key',
+            publicKeyId: 'test-public-key-id',
+            projectId: 'test-project-id',
+            userId: 'test-user-id'
+        });
+
+        // Initialize client
+        await client.init();
+
+        // Reset the fetch mock to track calls in individual tests
+        (global.fetch as jest.Mock).mockReset();
+    });
+
+    test('Example 1: Simple mocking of fetch', async () => {
+        // Mock a successful API response
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({
+                success: true,
+                status: 200,
+                message: 'User found',
+                data: {
+                    id: '123',
+                    name: 'Test User',
+                    email: 'test@example.com',
+                    active: true
+                }
+            }),
+            status: 200
+        });
+
+        // Call the API
+        const response = await client.findById<User>(
+            'workspace',
+            'users',
+            [{ field: 'id', value: '123' }]
+        );
+
+        // Verify the response
+        expect(response.success).toBe(true);
+        expect(response.data.id).toBe('123');
+        expect(response.data.name).toBe('Test User');
+
+        // Verify correct URL was called
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining('workspace/users/findById'),
+            expect.any(Object)
+        );
+    });
+});
+
+// APPROACH 2: Mock Factory
+// Create a factory to generate standardized mocks
+describe('MockingRequests Example - Mock Factory', () => {
+    // Mock factory for creating standardized response mocks
+    const createMockResponse = <T>(
+        success: boolean = true,
+        status: number = 200,
+        message: string = 'Success',
+        data: T | null = null
+    ) => {
+        return {
+            ok: success,
+            status,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({
+                success,
+                status,
+                message,
+                data
+            })
+        };
+    };
+
+    let client: HosbyClient;
+
+    beforeEach(async () => {
+        // Reset the global fetch mock
+        (global.fetch as jest.Mock).mockReset();
+
+        // Mock the CSRF token fetch first
+        (global.fetch as jest.Mock).mockResolvedValueOnce(
+            createMockResponse(true, 200, 'Token fetched', { token: 'mock-csrf-token' })
+        );
+
+        // Create and initialize client
+        client = new HosbyClient({
+            baseURL: 'https://api.hosby.com',
+            privateKey: 'test-private-key',
+            publicKeyId: 'test-public-key-id',
+            projectId: 'test-project-id',
+            userId: 'test-user-id'
+        });
+
+        await client.init();
+    });
+
+    test('Example 3: Using mock factory for collection response', async () => {
+        // Sample data for mock response
+        const mockUsers: User[] = [
+            {
+                id: '1',
+                name: 'John Doe',
+                email: 'john@example.com',
+                active: true
+            },
+            {
+                id: '2',
+                name: 'Jane Smith',
+                email: 'jane@example.com',
+                active: false
+            }
+        ];
+
+        // Use the factory to create a mock response
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({
+                success: true,
+                status: 200,
+                message: 'Users found',
+                data: mockUsers
+            })
+        });
+
+        // Call the API
+        const response = await client.find<User[]>('workspace', 'users');
+
+        // Verify the response
+        expect(response.success).toBe(true);
+        expect(response.data).toEqual(mockUsers);
+        expect(response.data.length).toBe(2);
+    });
+
+    test('Example 4: Using mock factory for custom status codes', async () => {
+        // Mock a created response (201)
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({
+                success: true,
+                status: 201,
+                message: 'User created',
+                data: {
+                    id: 'new-id',
+                    name: 'New User',
+                    email: 'new@example.com',
+                    active: true
+                }
+            })
+        });
+
+        // Call the API to create a user
+        const newUser = {
+            name: 'New User',
+            email: 'new@example.com',
+            active: true
+        };
+
+        const response = await client.insertOne<User>('workspace', 'users', newUser);
+
+        // Verify the response
+        expect(response.success).toBe(true);
+        expect(response.status).toBe(201);
+        expect(response.data.id).toBe('new-id');
+    });
+});
+
+// APPROACH 3: Request-dependent Responses
+describe('MockingRequests Example - Dynamic Response Based on Request', () => {
+    let client: HosbyClient;
+
+    beforeEach(async () => {
+        // Reset the fetch mock
+        (global.fetch as jest.Mock).mockReset();
+
+        // Mock the CSRF token fetch
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({ success: true, data: { token: 'mock-csrf-token' } }),
+            status: 200
+        });
+
+        // Create and initialize client
+        client = new HosbyClient({
+            baseURL: 'https://api.hosby.com',
+            privateKey: 'test-private-key',
+            publicKeyId: 'test-public-key-id',
+            projectId: 'test-project-id',
+            userId: 'test-user-id'
+        });
+
+        await client.init();
+    });
+
+    test('Example 5: Respond differently based on request data', async () => {
+        // Mock implementation that examines the request and returns a custom response
+        (global.fetch as jest.Mock).mockImplementation((url: string, options: RequestInit) => {
+            // Parse the URL to determine the endpoint
+            const urlString = url.toString();
+
+            // Extract filter parameters if present
+            let filters: QueryFilter[] = [];
+            const filterMatch = urlString.match(/filter=([^&]*)/);
+            if (filterMatch && filterMatch[1]) {
+                try {
+                    filters = JSON.parse(decodeURIComponent(filterMatch[1]));
+                } catch (e) {
+                    console.error('Error parsing filters:', e);
+                }
+            }
+
+            // Extract body data for non-GET requests
+            let bodyData = {};
+            if (options.body) {
+                try {
+                    bodyData = JSON.parse(options.body.toString());
+                } catch (e) {
+                    console.error('Error parsing body:', e);
+                }
+            }
+
+            // Customize response based on the request details
+            return Promise.resolve({
+                ok: true,
+                headers: new Headers({
+                    'Authorization': 'Bearer mock-token',
+                    'x-csrf-token': 'mock-csrf-token'
+                }),
+                json: async () => {
+                    // Case 1: GET user by ID
+                    if (urlString.includes('/findById')) {
+                        const idFilter = filters.find(f => f.field === 'id');
+                        if (idFilter && idFilter.value === '123') {
+                            // Return data for user with ID 123
+                            return {
+                                success: true,
+                                status: 200,
+                                message: 'User found',
+                                data: {
+                                    id: '123',
+                                    name: 'John Doe',
+                                    email: 'john@example.com',
+                                    active: true
+                                }
+                            };
+                        } else {
+                            // User not found
+                            throw {
+                                success: false,
+                                status: 404,
+                                message: 'User not found',
+                                data: null
+                            };
+                        }
+                    }
+
+                    // Case 2: Update user
+                    else if (urlString.includes('/updateOne') && options.method === 'PATCH') {
+                        const idFilter = filters.find(f => f.field === 'id');
+                        if (idFilter && idFilter.value === '123') {
+                            // Return updated user with merged data
+                            return {
+                                success: true,
+                                status: 200,
+                                message: 'User updated',
+                                data: {
+                                    id: '123',
+                                    name: 'John Doe', // Original data
+                                    email: 'john@example.com', // Original data
+                                    active: true, // Original data
+                                    ...bodyData // Merged with update data
+                                }
+                            };
+                        }
+                    }
+
+                    // Default fallback response
+                    return {
+                        success: true,
+                        status: 200,
+                        message: 'Operation successful',
+                        data: {}
+                    };
+                },
+                status: 200
+            });
+        });
+
+        // Test case 1: Find existing user
+        const findResponse = await client.findById<User>(
+            'workspace',
+            'users',
+            [{ field: 'id', value: '123' }]
+        );
+
+        expect(findResponse.success).toBe(true);
+        expect(findResponse.data.id).toBe('123');
+        expect(findResponse.data.name).toBe('John Doe');
+
+        // Test case 2: Find non-existent user
+        await expect(
+            client.findById<User>('workspace', 'users', [{ field: 'id', value: '999' }])
+        ).rejects.toEqual(
+            expect.objectContaining({
+                success: false,
+                status: 404
+            })
+        );
+
+        // Test case 3: Update user
+        const updateResponse = await client.updateOne<User>(
+            'workspace',
+            'users',
+            [{ field: 'id', value: '123' }],
+            { active: false } // Update data
+        );
+
+        expect(updateResponse.success).toBe(true);
+        expect(updateResponse.data.id).toBe('123');
+        expect(updateResponse.data.name).toBe('John Doe'); // Original data preserved
+        expect(updateResponse.data.active).toBe(false); // Updated field
+    });
+});
+
+// APPROACH 4: Testing real-world scenarios
+describe('MockingRequests Example - Real-world Testing Scenarios', () => {
+    let client: HosbyClient;
+
+    beforeEach(async () => {
+        // Reset the fetch mock
+        (global.fetch as jest.Mock).mockReset();
+
+        // Mock the CSRF token fetch
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({ success: true, data: { token: 'mock-csrf-token' } }),
+            status: 200
+        });
+
+        // Create and initialize client
+        client = new HosbyClient({
+            baseURL: 'https://api.hosby.com',
+            privateKey: 'test-private-key',
+            publicKeyId: 'test-public-key-id',
+            projectId: 'test-project-id',
+            userId: 'test-user-id'
+        });
+
+        await client.init();
+    });
+
+    test('Example 6: Testing CRUD lifecycle for a user', async () => {
+        // Sample user data
+        const newUser = {
+            name: 'Alice Johnson',
+            email: 'alice@example.com',
+            active: true
+        };
+
+        // 1. First mock the POST call to create a user
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({
+                success: true,
+                status: 201,
+                message: 'User created',
+                data: {
+                    id: 'user-123',
+                    ...newUser,
+                    createdAt: new Date().toISOString()
+                }
+            }),
+            status: 201
+        });
+
+        // Create the user
+        const createResponse = await client.insertOne<User>('workspace', 'users', newUser);
+
+        expect(createResponse.success).toBe(true);
+        expect(createResponse.status).toBe(201);
+        expect(createResponse.data.id).toBe('user-123');
+        expect(createResponse.data.name).toBe('Alice Johnson');
+
+        const userId = createResponse.data.id;
+
+        // 2. Mock the GET call to fetch the created user
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({
+                success: true,
+                status: 200,
+                message: 'User found',
+                data: createResponse.data // Return the same user
+            }),
+            status: 200
+        });
+
+        // Fetch the user we just created
+        const fetchResponse = await client.findById<User>(
+            'workspace',
+            'users',
+            [{ field: 'id', value: userId }]
+        );
+
+        expect(fetchResponse.success).toBe(true);
+        expect(fetchResponse.data.id).toBe(userId);
+
+        // 3. Mock the PATCH call to update the user
+        const updateData = {
+            name: 'Alice Smith', // Name changed after marriage
+            active: true
+        };
+
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({
+                success: true,
+                status: 200,
+                message: 'User updated',
+                data: {
+                    ...createResponse.data,
+                    ...updateData,
+                    updatedAt: new Date().toISOString()
+                }
+            }),
+            status: 200
+        });
+
+        // Update the user
+        const updateResponse = await client.updateOne<User>(
+            'workspace',
+            'users',
+            [{ field: 'id', value: userId }],
+            updateData
+        );
+
+        expect(updateResponse.success).toBe(true);
+        expect(updateResponse.data.name).toBe('Alice Smith');
+        expect(updateResponse.data.email).toBe('alice@example.com'); // Unchanged
+
+        // 4. Mock the DELETE call
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({
+                success: true,
+                status: 200,
+                message: 'User deleted',
+                data: updateResponse.data
+            }),
+            status: 200
+        });
+
+        // Delete the user
+        const deleteResponse = await client.deleteById<User>(
+            'workspace',
+            'users',
+            [{ field: 'id', value: userId }]
+        );
+
+        expect(deleteResponse.success).toBe(true);
+        expect(deleteResponse.data.id).toBe(userId);
+
+        // 5. Mock the GET call after deletion to verify it's gone
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: false,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({
+                success: false,
+                status: 404,
+                message: 'User not found',
+                data: null
+            }),
+            status: 404
+        });
+
+        // Try to fetch the deleted user
+        await expect(
+            client.findById<User>('workspace', 'users', [{ field: 'id', value: userId }])
+        ).rejects.toEqual(
+            expect.objectContaining({
+                success: false,
+                status: 404,
+                message: 'User not found'
+            })
+        );
+    });
+
+    test('Example 7: Testing error handling and retries', async () => {
+        // Mock a network failure first, then success on retry
+        (global.fetch as jest.Mock)
+            // First call fails with network error
+            .mockRejectedValueOnce(new Error('Network failure'))
+            // Second call succeeds
+            .mockResolvedValueOnce({
+                ok: true,
+                headers: new Headers({
+                    'x-csrf-token': 'mock-csrf-token'
+                }),
+                json: async () => ({
+                    success: true,
+                    status: 200,
+                    message: 'Success on retry',
+                    data: { id: '123', name: 'Test User' }
+                }),
+                status: 200
+            });
+
+        // First attempt should fail with network error
+        await expect(
+            client.findById<User>('workspace', 'users', [{ field: 'id', value: '123' }])
+        ).rejects.toEqual({
+            success: false,
+            status: 500,
+            message: 'Network failure'
+        });
+
+        // Reset mock and try again
+        (global.fetch as jest.Mock).mockReset();
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: new Headers({
+                'x-csrf-token': 'mock-csrf-token'
+            }),
+            json: async () => ({
+                success: true,
+                status: 200,
+                message: 'Success on retry',
+                data: { id: '123', name: 'Test User' }
+            }),
+            status: 200
+        });
+
+        // Second attempt should succeed
+        const response = await client.findById<User>(
+            'workspace',
+            'users',
+            [{ field: 'id', value: '123' }]
+        );
+
+        expect(response.success).toBe(true);
+        expect(response.data.id).toBe('123');
+    });
+});
+
+// Demonstrate how to use these techniques in a more complex test
+describe('Complex Example - User Authentication Flow', () => {
+    let client: HosbyClient;
+
+    beforeEach(async () => {
+        // Reset the fetch mock
+        (global.fetch as jest.Mock).mockReset();
+
+        // Mock the CSRF token fetch with headers
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: {
+                get: jest.fn().mockReturnValue('mock-csrf-token')
+            },
+            json: async () => ({ success: true, data: { token: 'mock-csrf-token' } }),
+            status: 200
+        });
+
+        // Create and initialize client
+        client = new HosbyClient({
+            baseURL: 'https://api.hosby.com',
+            privateKey: 'test-private-key',
+            publicKeyId: 'test-public-key-id',
+            projectId: 'test-project-id',
+            userId: 'test-user-id'
+        });
+
+        await client.init();
+    });
+
+    test('Complete user login flow with validation and error handling', async () => {
+        // Mock implementation based on different requests in the flow
+        (global.fetch as jest.Mock).mockImplementation((url: string, options: RequestInit) => {
+            const urlString = url.toString();
+            const method = options.method || 'GET';
+            const bodyData = options.body ? JSON.parse(options.body.toString()) : {};
+
+            // Mock response headers
+            const mockHeaders = {
+                get: (name: string) => {
+                    if (name === 'Authorization') return 'Bearer mock-token';
+                    if (name === 'x-csrf-token') return 'mock-csrf-token';
+                    return null;
+                }
+            };
+
+            // 1. User lookup by email
+            if (urlString.includes('/findByEmail')) {
+                const filterParam = new URLSearchParams(new URL(urlString).search).get('filter');
+                const filters = filterParam ? JSON.parse(decodeURIComponent(filterParam)) : [];
+                const emailFilter = filters.find((f: QueryFilter) => f.field === 'email');
+
+                if (emailFilter && emailFilter.value === 'valid@example.com') {
+                    // Return existing user
+                    return Promise.resolve({
+                        ok: true,
+                        headers: mockHeaders,
+                        json: async () => ({
+                            success: true,
+                            status: 200,
+                            message: 'User found',
+                            data: {
+                                id: 'user-123',
+                                email: 'valid@example.com',
+                                passwordHash: 'hashed-password',
+                                active: true,
+                                loginAttempts: 0
+                            }
+                        }),
+                        status: 200
+                    });
+                } else {
+                    // User not found
+                    return Promise.resolve({
+                        ok: false,
+                        headers: mockHeaders,
+                        json: async () => ({
+                            success: false,
+                            status: 404,
+                            message: 'User not found',
+                            data: null
+                        }),
+                        status: 404
+                    });
+                }
+            }
+
+            // 2. Update login attempts or last login timestamp
+            else if (urlString.includes('/updateOne') && method === 'PATCH') {
+                // Check if this is a login success or failure update
+                if (bodyData.lastLoginDate) {
+                    // Successful login update
+                    return Promise.resolve({
+                        ok: true,
+                        headers: mockHeaders,
+                        json: async () => ({
+                            success: true,
+                            status: 200,
+                            message: 'Login recorded',
+                            data: {
+                                id: 'user-123',
+                                email: 'valid@example.com',
+                                active: true,
+                                loginAttempts: 0,
+                                lastLoginDate: bodyData.lastLoginDate
+                            }
+                        }),
+                        status: 200
+                    });
+                } else if (bodyData.loginAttempts) {
+                    // Failed login attempt update
+                    return Promise.resolve({
+                        ok: true,
+                        headers: mockHeaders,
+                        json: async () => ({
+                            success: true,
+                            status: 200,
+                            message: 'Login attempts updated',
+                            data: {
+                                id: 'user-123',
+                                email: 'valid@example.com',
+                                active: true,
+                                loginAttempts: bodyData.loginAttempts
+                            }
+                        }),
+                        status: 200
+                    });
+                }
+            }
+
+            // Default fallback response
+            return Promise.resolve({
+                ok: true,
+                headers: mockHeaders,
+                json: async () => ({
+                    success: true,
+                    status: 200,
+                    message: 'Operation successful',
+                    data: {}
+                }),
+                status: 200
+            });
+        });
+
+        // Function to simulate the login process
+        const performLogin = async (email: string, password: string): Promise<{ success: boolean; message: string; userId?: string }> => {
+            try {
+                // 1. Find user by email
+                const user = await client.findByEmail<User>('workspace', 'users', [
+                    { field: 'email', value: email }
+                ]);
+
+                // 2. In a real app, you would validate password here
+                // For testing, we'll just check if email is valid
+                if (email === 'valid@example.com' && password === 'correct-password') {
+                    // 3. If valid, update last login timestamp
+                    await client.updateOne(
+                        'workspace',
+                        'users',
+                        [{ field: 'id', value: user.data.id }],
+                        {
+                            lastLoginDate: new Date().toISOString(),
+                            loginAttempts: 0
+                        }
+                    );
+
+                    return {
+                        success: true,
+                        message: 'Login successful',
+                        userId: user.data.id
+                    };
+                } else {
+                    // 4. If invalid, increment login attempts
+                    await client.updateOne(
+                        'workspace',
+                        'users',
+                        [{ field: 'id', value: user.data.id }],
+                        { loginAttempts: 1 }
+                    );
+
+                    return {
+                        success: false,
+                        message: 'Invalid credentials'
+                    };
+                }
+            } catch (error) {
+                // User not found or other error
+                return {
+                    success: false,
+                    message: 'User not found'
+                };
+            }
+        };
+
+        // Test successful login
+        const successResult = await performLogin('valid@example.com', 'correct-password');
+        expect(successResult.success).toBe(true);
+        expect(successResult.userId).toBe('user-123');
+
+        // Test failed login - wrong password
+        const failedResult1 = await performLogin('valid@example.com', 'wrong-password');
+        expect(failedResult1.success).toBe(false);
+        expect(failedResult1.message).toBe('Invalid credentials');
+
+        // Test failed login - user not found
+        const failedResult2 = await performLogin('nonexistent@example.com', 'any-password');
+        expect(failedResult2.success).toBe(false);
+        expect(failedResult2.message).toBe('User not found');
+    });
+});
