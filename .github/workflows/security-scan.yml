@@ -25,7 +25,6 @@ jobs:
       
       - name: Run SAST scan with ESLint security plugins
         run: |
-          # Créer un fichier eslint.config.js pour ESLint v9 (compatible avec ES modules)
           cat > eslint.config.js << 'EOF'
           import eslint from '@eslint/js';
           import tseslint from 'typescript-eslint';
@@ -66,9 +65,4 @@ jobs:
           );
           EOF
           
-          # Exécuter ESLint avec la nouvelle configuration
-          # Utiliser le motif glob au lieu de --ext
-          # Exécuter ESLint avec la nouvelle configuration
-          # Utiliser uniquement les patterns qui existent vraiment dans votre projet
-          # Ajouter --no-error-on-unmatched-pattern pour éviter l'erreur
           npx eslint "src/**/*.ts" --no-error-on-unmatched-pattern
