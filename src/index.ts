@@ -35,37 +35,38 @@ export class HosbyClient {
     this.baseClient = new BaseClient(config);
     this.crudClient = new CrudClient(this.baseClient);
 
-    // Bind CRUD methods to maintain proper 'this' context
-    this.find = this.crudClient.get.find.bind(this.crudClient.get);
-    this.findById = this.crudClient.get.findById.bind(this.crudClient.get);
-    this.findByEmail = this.crudClient.get.findByEmail.bind(this.crudClient.get);
-    this.findByToken = this.crudClient.get.findByToken.bind(this.crudClient.get);
-    this.distinct = this.crudClient.get.distinct.bind(this.crudClient.get);
-    this.aggregate = this.crudClient.get.aggregate.bind(this.crudClient.get);
-    this.count = this.crudClient.get.count.bind(this.crudClient.get);
-    this.findAndPopulate = this.crudClient.get.findAndPopulate.bind(this.crudClient.get);
-    this.findEqual = this.crudClient.get.findEqual.bind(this.crudClient.get);
-    this.findLessThan = this.crudClient.get.findLessThan.bind(this.crudClient.get);
-    this.findGreaterThan = this.crudClient.get.findGreaterThan.bind(this.crudClient.get);
-    this.findByField = this.crudClient.get.findByField.bind(this.crudClient.get);
+    // Bind CRUD methods
+    this.find = (...args) => this.crudClient.get.find(...args);
+    this.find = (...args) => this.crudClient.get.find(...args);
+    this.findById = (...args) => this.crudClient.get.findById(...args);
+    this.findByEmail = (...args) => this.crudClient.get.findByEmail(...args);
+    this.findByToken = (...args) => this.crudClient.get.findByToken(...args);
+    this.distinct = (...args) => this.crudClient.get.distinct(...args);
+    this.aggregate = (...args) => this.crudClient.get.aggregate(...args);
+    this.count = (...args) => this.crudClient.get.count(...args);
+    this.findAndPopulate = (...args) => this.crudClient.get.findAndPopulate(...args);
+    this.findEqual = (...args) => this.crudClient.get.findEqual(...args);
+    this.findLessThan = (...args) => this.crudClient.get.findLessThan(...args);
+    this.findGreaterThan = (...args) => this.crudClient.get.findGreaterThan(...args);
+    this.findByField = (...args) => this.crudClient.get.findByField(...args);
 
-    this.insertOne = this.crudClient.post.insertOne.bind(this.crudClient.post);
-    this.insertMany = this.crudClient.post.insertMany.bind(this.crudClient.post);
-    this.upsert = this.crudClient.post.upsert.bind(this.crudClient.post);
+    this.insertOne = (...args) => this.crudClient.post.insertOne(...args);
+    this.insertMany = (...args) => this.crudClient.post.insertMany(...args);
+    this.upsert = (...args) => this.crudClient.post.upsert(...args);
 
-    this.replaceOne = this.crudClient.put.replaceOne.bind(this.crudClient.put);
-    this.findOneAndReplace = this.crudClient.put.findOneAndReplace.bind(this.crudClient.put);
+    this.replaceOne = (...args) => this.crudClient.put.replaceOne(...args);
+    this.findOneAndReplace = (...args) => this.crudClient.put.findOneAndReplace(...args);
 
-    this.updateOne = this.crudClient.patch.updateOne.bind(this.crudClient.patch);
-    this.updateMany = this.crudClient.patch.updateMany.bind(this.crudClient.patch);
-    this.findOneAndUpdate = this.crudClient.patch.findOneAndUpdate.bind(this.crudClient.patch);
+    this.updateOne = (...args) => this.crudClient.patch.updateOne(...args);
+    this.updateMany = (...args) => this.crudClient.patch.updateMany(...args);
+    this.findOneAndUpdate = (...args) => this.crudClient.patch.findOneAndUpdate(...args);
 
-    this.deleteOne = this.crudClient.delete.deleteOne.bind(this.crudClient.delete);
-    this.deleteMany = this.crudClient.delete.deleteMany.bind(this.crudClient.delete);
-    this.deleteByField = this.crudClient.delete.deleteByField.bind(this.crudClient.delete);
-    this.deleteByToken = this.crudClient.delete.deleteByToken.bind(this.crudClient.delete);
-    this.deleteById = this.crudClient.delete.deleteById.bind(this.crudClient.delete);
-    this.findOneAndDelete = this.crudClient.delete.findOneAndDelete.bind(this.crudClient.delete);
+    this.deleteOne = (...args) => this.crudClient.delete.deleteOne(...args);
+    this.deleteMany = (...args) => this.crudClient.delete.deleteMany(...args);
+    this.deleteByField = (...args) => this.crudClient.delete.deleteByField(...args);
+    this.deleteByToken = (...args) => this.crudClient.delete.deleteByToken(...args);
+    this.deleteById = (...args) => this.crudClient.delete.deleteById(...args);
+    this.findOneAndDelete = (...args) => this.crudClient.delete.findOneAndDelete(...args);
   }
 
   /**
