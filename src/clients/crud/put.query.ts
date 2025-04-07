@@ -8,7 +8,6 @@ export class PutQueryClient {
      * Replace a document completely with new data
      * @template T - Type of the returned document
      * @template D - Type of the replacement data (defaults to unknown)
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection 
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param data - New document data to replace with. Should match type D
@@ -34,7 +33,6 @@ export class PutQueryClient {
      * 
      * // Replace user document by ID and populate profile
      * const result = await putClient.replaceOne<User>(
-     *   'myproject',
      *   'users',
      *   [{ field: 'id', value: '507f1f77bcf86cd799439011' }],
      *   { 
@@ -50,19 +48,18 @@ export class PutQueryClient {
      * ```
      */
     async replaceOne<T, D = unknown>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters.length) {
-            throw new Error('Project, table and id are required');
+        if (!table || !queryFilters.length) {
+            throw new Error('Table and queryFilters are required');
         }
 
         return this.baseClient['request']<T>(
             'PUT',
-            `${project}/${table}/replaceOne`,
+            `${table}/replaceOne`,
             queryFilters,
             options,
             data
@@ -73,7 +70,6 @@ export class PutQueryClient {
      * Find a document by filter criteria and replace it with new data
      * @template T - Type of the returned document
      * @template D - Type of the replacement data (defaults to unknown)
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param data - New document data to replace with. Should match type D
@@ -99,7 +95,6 @@ export class PutQueryClient {
      * 
      * // Find and replace user by email and populate profile
      * const result = await putClient.findOneAndReplace<User>(
-     *   'myproject',
      *   'users',
      *   [{ field: 'email', value: 'user@example.com' }],
      *   { 
@@ -120,14 +115,13 @@ export class PutQueryClient {
      * ```
      */
     async findOneAndReplace<T, D = unknown>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table) {
-            throw new Error('Project and table are required');
+        if (!table) {
+            throw new Error('Table is required');
         }
 
         if (!queryFilters?.length) {
@@ -136,7 +130,7 @@ export class PutQueryClient {
 
         return this.baseClient['request']<T>(
             'PUT',
-            `${project}/${table}/findOneAndReplace`,
+            `${table}/findOneAndReplace`,
             queryFilters,
             options,
             data

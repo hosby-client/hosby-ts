@@ -7,7 +7,6 @@ export class DeleteQueryClient {
     /**
      * Delete a single document by filter criteria
      * @template T - Type of document being deleted and returned
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @returns Promise resolving to ApiResponse containing:
@@ -15,7 +14,7 @@ export class DeleteQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Human readable response message
      *   - data: The deleted document matching type T
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface User {
@@ -26,7 +25,6 @@ export class DeleteQueryClient {
      * 
      * // Delete a user by email
      * const result = await deleteClient.deleteOne<User>(
-     *   'myproject',
      *   'users',
      *   [{ field: 'email', value: 'user@example.com' }]
      * );
@@ -37,24 +35,22 @@ export class DeleteQueryClient {
      * 
      * // Delete a document by ID
      * const result = await deleteClient.deleteOne<Document>(
-     *   'workspace1', 
      *   'documents',
-     *   [{ field: '_id', value: '123abc' }]
+     *   [{ field: 'id', value: '123abc' }]
      * );
      * ```
      */
     async deleteOne<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[]
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error('Project, table and filters are required');
+        if (!table || !queryFilters?.length) {
+            throw new Error('Table and filters are required');
         }
 
         return this.baseClient['request']<T>(
             'DELETE',
-            `${project}/${table}/deleteOne`,
+            `${table}/deleteOne`,
             queryFilters
         );
     }
@@ -62,7 +58,6 @@ export class DeleteQueryClient {
     /**
      * Delete multiple documents matching filter criteria
      * @template T - Type of the response data, typically { deletedCount: number }
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param options - Additional query options
@@ -72,7 +67,7 @@ export class DeleteQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Human readable response message
      *   - data: Object with deletedCount indicating number of deleted documents
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface DeleteResult {
@@ -81,7 +76,6 @@ export class DeleteQueryClient {
      * 
      * // Delete inactive users created before specific date
      * const result = await deleteClient.deleteMany<DeleteResult>(
-     *   'myproject',
      *   'users',
      *   [
      *     { field: 'active', value: false },
@@ -96,18 +90,17 @@ export class DeleteQueryClient {
      * ```
      */
     async deleteMany<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error('Project and table are required');
+        if (!table || !queryFilters?.length) {
+            throw new Error('Table and queryFilters are required');
         }
 
         return this.baseClient['request']<T>(
             'DELETE',
-            `${project}/${table}/deleteMany`,
+            `${table}/deleteMany`,
             queryFilters,
             options
         );
@@ -116,7 +109,6 @@ export class DeleteQueryClient {
     /**
      * Find a document by filter criteria and delete it
      * @template T - Type of the document being deleted and returned
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param options - Additional query options
@@ -126,7 +118,7 @@ export class DeleteQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: The deleted document of type T
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface User {
@@ -141,7 +133,6 @@ export class DeleteQueryClient {
      * 
      * // Find and delete inactive user by email and populate profile
      * const result = await deleteClient.findOneAndDelete<User>(
-     *   'myproject',
      *   'users',
      *   [
      *     { field: 'email', value: 'user@example.com' },
@@ -157,18 +148,17 @@ export class DeleteQueryClient {
      * ```
      */
     async findOneAndDelete<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error('Project and table are required');
+        if (!table || !queryFilters?.length) {
+            throw new Error('Table and queryFilters are required');
         }
 
         return this.baseClient['request']<T>(
             'DELETE',
-            `${project}/${table}/findOneAndDelete`,
+            `${table}/findOneAndDelete`,
             queryFilters,
             options
         );
@@ -177,7 +167,6 @@ export class DeleteQueryClient {
     /**
      * Delete documents by field/value pairs
      * @template T - Type of documents being deleted and returned
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field and value properties
      * @param options - Additional query options
@@ -203,7 +192,6 @@ export class DeleteQueryClient {
      * 
      * // Delete inactive guest users
      * const result = await deleteClient.deleteByField<User[]>(
-     *   'myproject',
      *   'users',
      *   [
      *     { field: 'role', value: 'guest' },
@@ -219,18 +207,17 @@ export class DeleteQueryClient {
      * ```
      */
     async deleteByField<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
-        options: { limit?: number } = { }
+        options: { limit?: number } = {}
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error('Project, table and query filters are required');
+        if (!table || !queryFilters?.length) {
+            throw new Error('Table and query filters are required');
         }
 
         return this.baseClient['request']<T>(
             'DELETE',
-            `${project}/${table}/deleteByField`,
+            `${table}/deleteByField`,
             queryFilters,
             options
         );
@@ -239,7 +226,6 @@ export class DeleteQueryClient {
     /**
      * Delete a document by token field and value
      * @template T - Type of document being deleted and returned
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param options - Additional query options
@@ -249,7 +235,7 @@ export class DeleteQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Human readable response message
      *   - data: The deleted document matching type T
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface User {
@@ -260,7 +246,6 @@ export class DeleteQueryClient {
      * 
      * // Delete user by reset password token
      * const response = await deleteClient.deleteByToken<User>(
-     *   'myproject', 
      *   'users',
      *   [{ field: 'resetPasswordToken', value: 'abc123xyz' }],
      *   { limit: 1 }
@@ -273,18 +258,17 @@ export class DeleteQueryClient {
      * ```
      */
     async deleteByToken<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error(`Project, table and query filter ' token ' is required`);
+        if (!table || !queryFilters?.length) {
+            throw new Error(`Table and query filter ' token ' are required`);
         }
 
         return this.baseClient['request']<T>(
             'DELETE',
-            `${project}/${table}/deleteByToken`,
+            `$${table}/deleteByToken`,
             queryFilters,
             options
         );
@@ -293,7 +277,6 @@ export class DeleteQueryClient {
     /**
      * Delete a document by its ID
      * @template T - Type of the document being deleted and returned
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param options - Additional query options
@@ -303,7 +286,7 @@ export class DeleteQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Human readable response message
      *   - data: The deleted document matching type T
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface Document {
@@ -314,7 +297,6 @@ export class DeleteQueryClient {
      * 
      * // Delete document by ID
      * const response = await deleteClient.deleteById<Document>(
-     *   'myproject',
      *   'documents', 
      *   [{ field: 'id', value: '507f1f77bcf86cd799439011' }]
      * );
@@ -326,18 +308,17 @@ export class DeleteQueryClient {
      * ```
      */
     async deleteById<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error(`Project, table and query filter ' id ' is required`);
+        if (!!table || !queryFilters?.length) {
+            throw new Error(`Table and query filter ' id ' are required`);
         }
 
         return this.baseClient['request']<T>(
             'DELETE',
-            `${project}/${table}/delete`,
+            `${table}/delete`,
             queryFilters,
             options
         );
