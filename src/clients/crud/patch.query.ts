@@ -8,7 +8,6 @@ export class PatchQueryClient {
      * Update a single document by filter criteria
      * @template T - Type of the returned document
      * @template D - Type of the update data (defaults to unknown)
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param data - Data to update the document with. Should match type D
@@ -19,7 +18,7 @@ export class PatchQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: The updated document of type T
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface User {
@@ -38,7 +37,6 @@ export class PatchQueryClient {
      * 
      * // Update user by email and populate profile
      * const result = await patchClient.updateOne<User, UserUpdate>(
-     *   'myproject',
      *   'users', 
      *   [{ field: 'email', value: 'user@example.com' }],
      *   { status: 'active' },
@@ -47,27 +45,25 @@ export class PatchQueryClient {
      * 
      * // Update document by ID
      * const result = await patchClient.updateOne<Document>(
-     *   'workspace1',
      *   'documents',
-     *   [{ field: '_id', value: '123abc' }],
+     *   [{ field: 'id', value: '123abc' }],
      *   { title: 'Updated Title' }
      * );
      * ```
      */
     async updateOne<T, D = unknown>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error('Project, table and filters are required');
+        if (!table || !queryFilters?.length) {
+            throw new Error('Table and filters are required');
         }
 
         return this.baseClient['request']<T>(
             'PATCH',
-            `${project}/${table}/updateOne`,
+            `${table}/updateOne`,
             queryFilters,
             options,
             data
@@ -76,7 +72,6 @@ export class PatchQueryClient {
 
     /**
      * Update multiple documents matching filter criteria
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection 
      * @param filters - Array of filter criteria for querying. Each filter should have field and value properties
      * @param data - Data to update the documents with. Can be a partial object containing only fields to update
@@ -106,7 +101,6 @@ export class PatchQueryClient {
      * // Update status and add tags for inactive users
      * // T = UpdateResponse (return type), UserUpdate (data type)
      * const result = await patchClient.updateMany<UpdateResponse, UserUpdate>(
-     *   'myproject',
      *   'users',
      *   [
      *     { field: 'active', value: false },
@@ -123,19 +117,18 @@ export class PatchQueryClient {
      * ```
      */
     async updateMany<T, D = unknown>(
-        project: string,
         table: string,
         filters: QueryFilter[],
         data: D,
         options?: Pick<QueryOptions, 'populate' | 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table) {
-            throw new Error('Project and table are required');
+        if (!table) {
+            throw new Error('Table is required');
         }
 
         return this.baseClient['request']<T>(
             'PATCH',
-            `${project}/${table}/updateMany`,
+            `${table}/updateMany`,
             filters,
             options,
             data
@@ -144,7 +137,6 @@ export class PatchQueryClient {
 
     /**
      * Find a document by filter criteria and update it
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection 
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param data - Data to update the document with
@@ -153,7 +145,7 @@ export class PatchQueryClient {
      * @returns Promise resolving to ApiResponse containing the updated document
      * @template T - Type of the document being updated and returned
      * @template D - Type of the update data, defaults to unknown if not specified
-     * @throws Error if project, table or queryFilters are missing or empty
+     * @throws Error if table or queryFilters are missing or empty
      * @example
      * ```typescript
      * interface User {
@@ -176,7 +168,6 @@ export class PatchQueryClient {
      * 
      * // Find and update user by email
      * const result = await patchClient.findOneAndUpdate<User, UserUpdate>(
-     *   'myproject',
      *   'users',
      *   [{ field: 'email', value: 'user@example.com' }],
      *   { lastLoginDate: new Date() },
@@ -190,19 +181,18 @@ export class PatchQueryClient {
      * ```
      */
     async findOneAndUpdate<T, D = unknown>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters.length) {
-            throw new Error('Project and table are required');
+        if (!table || !queryFilters.length) {
+            throw new Error('Table and queryFilters are required');
         }
 
         return this.baseClient['request']<T>(
             'PATCH',
-            `${project}/${table}/findOneAndUpdate`,
+            `${table}/findOneAndUpdate`,
             queryFilters,
             options,
             data

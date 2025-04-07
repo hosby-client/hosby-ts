@@ -8,7 +8,6 @@ export class PostQueryClient {
      * Insert a single document
      * @template T - Type of the returned document
      * @template D - Type of the data to insert (defaults to unknown)
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param data - Document to insert. Should match type D
      * @param options - Additional query options
@@ -33,7 +32,6 @@ export class PostQueryClient {
      * 
      * // Insert new user and populate profile
      * const result = await postClient.insertOne<User>(
-     *   'myproject',
      *   'users',
      *   { 
      *     name: 'John Doe',
@@ -53,18 +51,17 @@ export class PostQueryClient {
      * ```
      */
     async insertOne<T, D = unknown>(
-        project: string,
         table: string,
         data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !data) {
-            throw new Error('Project, table and data are required');
+        if (!table || !data) {
+            throw new Error('Table and data are required');
         }
 
         return this.baseClient['request']<T>(
             'POST',
-            `${project}/${table}/insertOne`,
+            `${table}/insertOne`,
             undefined,
             options,
             data
@@ -75,7 +72,6 @@ export class PostQueryClient {
      * Insert multiple documents into a table/collection
      * @template T - Type of the returned documents array
      * @template D - Type of documents being inserted (defaults to unknown)
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param data - Array of documents to insert. Each document should match type D
      * @param options - Additional query options
@@ -100,7 +96,6 @@ export class PostQueryClient {
      * 
      * // Insert multiple users and populate profiles
      * const result = await postClient.insertMany<User[]>(
-     *   'myproject',
      *   'users',
      *   [
      *     { 
@@ -124,18 +119,17 @@ export class PostQueryClient {
      * ```
      */
     async insertMany<T, D = unknown>(
-        project: string,
         table: string,
         data: D[],
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !data) {
-            throw new Error('Project, table and data are required');
+        if (!table || !data) {
+            throw new Error('Table and data are required');
         }
 
         return this.baseClient['request']<T>(
             'POST',
-            `${project}/${table}/insertMany`,
+            `${table}/insertMany`,
             undefined,
             options,
             data
@@ -146,7 +140,6 @@ export class PostQueryClient {
      * Updates a document if it exists, otherwise creates a new one
      * @template T - Type of the returned document
      * @template D - Type of the update/insert data (defaults to unknown)
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param filters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param data - Data to update/insert. Should match type D
@@ -172,7 +165,6 @@ export class PostQueryClient {
      * 
      * // Upsert user by email and populate profile
      * const result = await postClient.upsert<User>(
-     *   'myproject',
      *   'users',
      *   [{ field: 'email', value: 'user@example.com' }],
      *   { 
@@ -193,14 +185,13 @@ export class PostQueryClient {
      * ```
      */
     async upsert<T, D = unknown>(
-        project: string,
         table: string,
         filters: QueryFilter[],
         data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table) {
-            throw new Error('Project, table and data are required');
+        if (!table) {
+            throw new Error('Table and data are required');
         }
 
         if (!filters?.length) {
@@ -209,7 +200,7 @@ export class PostQueryClient {
 
         return this.baseClient['request']<T>(
             'POST',
-            `${project}/${table}/upsert`,
+            `${table}/upsert`,
             filters,
             options,
             data

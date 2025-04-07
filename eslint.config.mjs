@@ -31,6 +31,7 @@ export default tseslint.config(
       '@typescript-eslint/explicit-function-return-type': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/explicit-function-return-type': 'off',
       'no-console': 'warn',
     },
     ignores: ['node_modules', 'dist', '__tests__'],

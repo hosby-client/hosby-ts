@@ -91,8 +91,9 @@ export class BaseClient {
   private jwToken?: string;
   private readonly authConfig: {
     privateKey: string;
-    publicKeyId: string;
+    apiKeyId: string;
     projectId: string;
+    projectName: string;
     userId: string;
   };
 
@@ -139,18 +140,20 @@ export class BaseClient {
     this.baseURL = config.baseURL;
     this.authConfig = {
       privateKey: '',
-      publicKeyId: '',
+      apiKeyId: '',
       projectId: '',
+      projectName: '',
       userId: ''
     };
     if (this.isSecureConfig(config)) {
-      const { privateKey, publicKeyId, projectId, userId } = config;
+      const { privateKey, apiKeyId, projectId, projectName, userId } = config;
 
       // Validate all required secure config fields
       const missingFields = [
         ['privateKey', privateKey],
-        ['publicKeyId', publicKeyId],
+        ['apiKeyId', apiKeyId],
         ['projectId', projectId],
+        ['projectName', projectName],
         ['userId', userId]
       ].filter(([, value]) => !value)
         .map(([field]) => field);
@@ -162,12 +165,13 @@ export class BaseClient {
       this.authConfig = {
         ...this.authConfig,
         privateKey,
-        publicKeyId,
+        apiKeyId,
+        projectName,
         projectId,
         userId
       };
     } else {
-      throw new Error('Secure config is required with privateKey, publicKeyId, userId and projectId');
+      throw new Error('Secure config is required with privateKey, apiKeyId, userId and projectId');
     }
   }
 
@@ -176,7 +180,7 @@ export class BaseClient {
    * @private
    */
   private isSecureConfig(config: BaseClientConfig | SecureClientConfig): config is SecureClientConfig {
-    return 'privateKey' in config && 'publicKeyId' in config;
+    return 'privateKey' in config && 'apiKeyId' in config;
   }
 
   /**
@@ -223,8 +227,8 @@ export class BaseClient {
   public async init(): Promise<void> {
     const response = await this.request<{ token: string }>('GET', 'api/secure/csrf-token');
     const data = response?.data as { token?: string };
-    if (!data?.token) {
-      throw new Error('Invalid CSRF token response');
+    if (!data || !data.token) {
+      throw new Error('Invalid CSRF token response: token missing from response data');
     }
     this.csrfToken = data.token;
   }
@@ -250,11 +254,37 @@ export class BaseClient {
     if (!method || !path) {
       throw new Error('Method and path are required');
     }
+    const url = new URL(`${path}/`, `${this.baseURL}/${this.authConfig.projectName}`);
 
-    const url = new URL(path, this.baseURL);
+    // Process query filters if present
+    if (queryFilters?.length) {
+      // Group filters by field name using type-safe reducer
+      const filtersByField = queryFilters.reduce<Record<string, unknown[]>>((acc, filter) => {
+        // Ensure filter has required fields
+        if (!filter?.field) {
+          throw new Error('Invalid query filter - missing field');
+        }
 
-    if (Array.isArray(queryFilters) && queryFilters.length > 0) {
-      url.searchParams.append('filter', JSON.stringify(queryFilters));
+        // Initialize array for field if needed
+        acc[filter.field] = acc[filter.field] || [];
+        
+        // Add value, ensuring it's not undefined
+        const value = filter.value ?? '';
+        acc[filter.field].push(value);
+        
+        return acc;
+      }, {});
+
+      // Add grouped filters to URL params with proper encoding
+      Object.entries(filtersByField).forEach(([field, values]) => {
+        values.forEach(value => {
+          // Ensure proper encoding of special characters
+          url.searchParams.append(
+            encodeURIComponent(field),
+            encodeURIComponent(String(value))
+          );
+        });
+      });
     }
 
     const headers = this.buildHeaders();
@@ -353,10 +383,10 @@ export class BaseClient {
       headers['Authorization'] = `Bearer ${this.jwToken}`;
     }
 
-    const { privateKey, publicKeyId, projectId, userId } = this.authConfig;
-    if (privateKey && publicKeyId && projectId && userId) {
+    const { privateKey, apiKeyId, projectId, userId } = this.authConfig;
+    if (privateKey && apiKeyId && projectId && userId) {
       const timestamp = Date.now().toString();
-      const apiKey = `${publicKeyId}_${projectId}_${userId}`;
+      const apiKey = `${apiKeyId}_${projectId}_${userId}`;
       const signature = this.signWithPrivateKey(`${apiKey}:${timestamp}`, privateKey);
 
       headers['x-signature'] = signature;

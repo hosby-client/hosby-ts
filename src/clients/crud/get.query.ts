@@ -7,7 +7,6 @@ export class GetQueryClient {
     /**
      * Find multiple documents based on filter criteria
      * @template T - Type of documents to return, typically an array type like User[]
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param options - Additional query options
@@ -21,7 +20,7 @@ export class GetQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Human readable response message
      *   - data: Array of found documents matching type T
-     * @throws Error if project or table parameters are missing/empty
+     * @throws Error if table parameters are missing/empty
      * @example
      * ```typescript
      * interface User {
@@ -41,7 +40,6 @@ export class GetQueryClient {
      * 
      * // Find active users with pagination and populated relations
      * const response = await getClient.find<User[]>(
-     *   'myproject',
      *   'users',
      *   [{ field: 'active', value: true }],
      *   { 
@@ -64,18 +62,17 @@ export class GetQueryClient {
      * ```
      */
     async find<T>(
-        project: string,
         table: string,
         queryFilters?: QueryFilter[],
         options?: QueryOptions
     ): Promise<ApiResponse<T>> {
-        if (!project || !table) {
-            throw new Error('Project, table are required');
+        if (!table) {
+            throw new Error('Table name is required');
         }
 
         return this.baseClient['request']<T>(
             'GET',
-            `${project}/${table}/find`,
+            `${table}/find`,
             queryFilters,
             options
         );
@@ -85,7 +82,6 @@ export class GetQueryClient {
     /**
      * Find a document by ID
      * @template T - Type of the document being returned
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection 
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties. 
      *                      Must include an '_id' field filter with the document ID to find.
@@ -94,7 +90,7 @@ export class GetQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: The found document of type T, or null if not found
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface Document {
@@ -106,7 +102,6 @@ export class GetQueryClient {
      * 
      * // Find document by ID
      * const result = await getClient.findById<Document>(
-     *   'myproject',
      *   'documents',
      *   [{ field: 'id', value: '507f1f77bcf86cd799439011' }]
      * );
@@ -118,17 +113,16 @@ export class GetQueryClient {
      * ```
      */
     async findById<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[]
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error('Project, table and query filters are required');
+        if (!table || !queryFilters?.length) {
+            throw new Error('Table name and query filters are required');
         }
 
         return this.baseClient['request']<T>(
             'GET',
-            `${project}/${table}/findById`,
+            `${table}/findById`,
             queryFilters
         );
     }
@@ -136,7 +130,6 @@ export class GetQueryClient {
     /**
      * Find a document by email field
      * @template T - Type of the document being returned
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties.
      *                      Must include an 'email' field filter with the email address to find.
@@ -145,7 +138,7 @@ export class GetQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: The found document of type T, or null if not found
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface User {
@@ -157,7 +150,6 @@ export class GetQueryClient {
      * 
      * // Find user by email
      * const result = await getClient.findByEmail<User>(
-     *   'myproject',
      *   'users',
      *   [{ field: 'email', value: 'user@example.com' }]
      * );
@@ -169,17 +161,16 @@ export class GetQueryClient {
      * ```
      */
     async findByEmail<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error(`Project, table and filter 'Email' required`);
+        if (!table || !queryFilters?.length) {
+            throw new Error(`Table name and filter 'Email' required`);
         }
 
         return this.baseClient['request']<T>(
             'GET',
-            `${project}/${table}/findByEmail`,
+            `${table}/findByEmail`,
             queryFilters
         );
     }
@@ -187,7 +178,6 @@ export class GetQueryClient {
     /**
      * Find a document by a specific token field
      * @template T - Type of the document being returned
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties.
      *                      Must include a token field filter with the token value to find.
@@ -199,7 +189,7 @@ export class GetQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: The found document of type T, or null if not found
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface User {
@@ -214,7 +204,6 @@ export class GetQueryClient {
      * 
      * // Find user by reset password token and populate profile
      * const result = await getClient.findByToken<User>(
-     *   'myproject',
      *   'users',
      *   [{ field: 'resetPasswordToken', value: 'abc123xyz' }],
      *   { populate: ['profile'] }
@@ -227,18 +216,17 @@ export class GetQueryClient {
      * ```
      */
     async findByToken<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error(`Project, table and 'Token' is required`);
+        if (!table || !queryFilters?.length) {
+            throw new Error(`Table name and 'Token' is required`);
         }
 
         return this.baseClient['request']<T>(
             'GET',
-            `${project}/${table}/findByToken`,
+            `${table}/findByToken`,
             queryFilters,
             options
         );
@@ -247,7 +235,6 @@ export class GetQueryClient {
     /**
      * Find documents by a specific field value
      * @template T - Type of the documents being returned
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param options - Additional query options
@@ -258,7 +245,7 @@ export class GetQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: Array of found documents of type T, or empty array if none found
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface User {
@@ -273,7 +260,6 @@ export class GetQueryClient {
      * 
      * // Find admin users and populate their profiles
      * const result = await getClient.findByField<User[]>(
-     *   'myproject',
      *   'users',
      *   [{ field: 'role', value: 'admin' }],
      *   { 
@@ -289,18 +275,17 @@ export class GetQueryClient {
      * ```
      */
     async findByField<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'populate' | 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error('Project, table and query filters are required');
+        if (!table || !queryFilters?.length) {
+            throw new Error('Table name and query filters are required');
         }
 
         return this.baseClient['request']<T>(
             'GET',
-            `${project}/${table}/findByField`,
+            `${table}/findByField`,
             queryFilters,
             options
         );
@@ -309,7 +294,6 @@ export class GetQueryClient {
     /**
      * Find documents where a field is greater than a value
      * @template T - Type of documents being queried
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param options - Additional query options
@@ -319,7 +303,7 @@ export class GetQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: Array of found documents of type T, or empty array if none found
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface User {
@@ -331,7 +315,6 @@ export class GetQueryClient {
      * 
      * // Find adult users
      * const result = await getClient.findGreaterThan<User[]>(
-     *   'myproject',
      *   'users',
      *   [{ field: 'age', value: 18 }],
      *   { limit: 100 }
@@ -344,18 +327,17 @@ export class GetQueryClient {
      * ```
      */
     async findGreaterThan<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error('Project, table and query filters are required');
+        if (!table || !queryFilters?.length) {
+            throw new Error('Table name and query filters are required');
         }
 
         return this.baseClient['request']<T>(
             'GET',
-            `${project}/${table}/findGreaterThan`,
+            `${table}/findGreaterThan`,
             queryFilters,
             options
         );
@@ -364,7 +346,6 @@ export class GetQueryClient {
     /**
      * Find documents where fields are less than specified values
      * @template T - Type of documents being queried
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param options - Additional query options
@@ -374,7 +355,7 @@ export class GetQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: Array of found documents of type T, or empty array if none found
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface Product {
@@ -386,7 +367,6 @@ export class GetQueryClient {
      * 
      * // Find products with price less than 100 and stock less than 50
      * const result = await getClient.findLessThan<Product[]>(
-     *   'myproject',
      *   'products',
      *   [
      *     { field: 'price', value: 100 },
@@ -402,18 +382,17 @@ export class GetQueryClient {
      * ```
      */
     async findLessThan<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error('Project, table and query filters are required');
+        if (!table || !queryFilters?.length) {
+            throw new Error('Table name and query filters are required');
         }
 
         return this.baseClient['request']<T>(
             'GET',
-            `${project}/${table}/findLessThan`,
+            `${table}/findLessThan`,
             queryFilters,
             options
         );
@@ -422,7 +401,6 @@ export class GetQueryClient {
     /**
      * Find documents where fields exactly match specified values
      * @template T - Type of documents to return
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param options - Additional query options
@@ -432,7 +410,7 @@ export class GetQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: Array of found documents of type T, or empty array if none found
-     * @throws Error if project, table or queryFilters are missing/empty
+     * @throws Error if table or queryFilters are missing/empty
      * @example
      * ```typescript
      * interface User {
@@ -444,7 +422,6 @@ export class GetQueryClient {
      * 
      * // Find active admin users
      * const result = await getClient.findEqual<User[]>(
-     *   'myproject',
      *   'users',
      *   [
      *     { field: 'status', value: 'active' },
@@ -465,13 +442,13 @@ export class GetQueryClient {
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error('Project, table and query filters are required');
+        if (!table || !queryFilters?.length) {
+            throw new Error('Table name and query filters are required');
         }
 
         return this.baseClient['request']<T>(
             'GET',
-            `${project}/${table}/findEqual`,
+            `${table}/findEqual`,
             queryFilters,
             options
         );
@@ -480,7 +457,6 @@ export class GetQueryClient {
     /**
      * Find documents and populate referenced fields
      * @template T - Type of the returned documents
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
      * @param options - Query options including populate fields, skip and limit
@@ -492,7 +468,7 @@ export class GetQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: Array of found and populated documents of type T
-     * @throws Error if project, table or populate options are missing
+     * @throws Error if table or populate options are missing
      * @example
      * ```typescript
      * interface Order {
@@ -514,7 +490,6 @@ export class GetQueryClient {
      * 
      * // Find orders and populate user and product details
      * const result = await getClient.findAndPopulate<Order[]>(
-     *   'myproject', 
      *   'orders',
      *   [{ field: 'status', value: 'pending' }],
      *   { 
@@ -533,18 +508,17 @@ export class GetQueryClient {
      * ```
      */
     async findAndPopulate<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         options: QueryOptions
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !options?.populate) {
-            throw new Error('Project, table and populate options are required');
+        if (!table || !options?.populate) {
+            throw new Error('Table name and populate options are required');
         }
 
         return this.baseClient['request']<T>(
             'GET',
-            `${project}/${table}/findAndPopulate`,
+            `${table}/findAndPopulate`,
             queryFilters,
             options
         );
@@ -553,7 +527,6 @@ export class GetQueryClient {
     /**
      * Count documents matching filter criteria
      * @template T - Type of the response data, typically { count: number }
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Optional array of filter criteria. Each filter should have field and value properties
      * @returns Promise resolving to ApiResponse containing:
@@ -561,7 +534,7 @@ export class GetQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: Object of type T containing the count
-     * @throws Error if project or table is missing
+     * @throws Error if table is missing
      * @example
      * ```typescript
      * interface CountResult {
@@ -570,7 +543,6 @@ export class GetQueryClient {
      * 
      * // Count all active users
      * const result = await getClient.count<CountResult>(
-     *   'myproject',
      *   'users',
      *   [{ field: 'active', value: true }]
      * );
@@ -581,7 +553,6 @@ export class GetQueryClient {
      * 
      * // Count documents with multiple filters
      * const result = await getClient.count<CountResult>(
-     *   'myproject', 
      *   'orders',
      *   [
      *     { field: 'status', value: 'pending' },
@@ -591,17 +562,16 @@ export class GetQueryClient {
      * ```
      */
     async count<T>(
-        project: string,
         table: string,
         queryFilters?: QueryFilter[]
     ): Promise<ApiResponse<T>> {
-        if (!project || !table) {
-            throw new Error('Project and table are required');
+        if (!table) {
+            throw new Error('Table name is required');
         }
 
         return this.baseClient['request']<T>(
             'GET',
-            `${project}/${table}/count`,
+            `${table}/count`,
             queryFilters
         );
     }
@@ -609,7 +579,6 @@ export class GetQueryClient {
     /**
      * Perform a custom aggregation on a table
      * @template T - Type of the aggregation result
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria to filter documents before aggregation. Each filter should have field, value properties
      * @param options - Additional query options
@@ -621,7 +590,7 @@ export class GetQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: Array of type T containing the aggregation results
-     * @throws Error if project or table is missing
+     * @throws Error if table is missing
      * @example
      * ```typescript
      * interface AggregateResult {
@@ -632,7 +601,6 @@ export class GetQueryClient {
      * 
      * // Group active users by role and calculate metrics
      * const result = await getClient.aggregate<AggregateResult[]>(
-     *   'myproject',
      *   'users',
      *   [{ field: 'active', value: true }],
      *   { 
@@ -650,28 +618,26 @@ export class GetQueryClient {
      * ```
      */
     async aggregate<T>(
-        project: string,
         table: string,
         queryFilters?: QueryFilter[],
         options?: Pick<QueryOptions, 'skip' | 'limit' | 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table) {
-            throw new Error('Project and table are required');
+        if (!table) {
+            throw new Error('Table name is required');
         }
 
         return this.baseClient['request']<T>(
             'GET',
-            `${project}/${table}/aggregate`,
+            `${table}/aggregate`,
             queryFilters,
             options
         );
     }
 
-    
+
     /**
      * Get distinct values for a specific field
      * @template T - Type of the returned distinct values array
-     * @param project - Name of the project/workspace
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field and value properties
      * @param options - Additional query options
@@ -682,7 +648,7 @@ export class GetQueryClient {
      *   - status: HTTP status code (200 for success)
      *   - message: Response message describing the result
      *   - data: Array of type T containing the distinct values
-     * @throws Error if project, table or queryFilters are missing
+     * @throws Error if table or queryFilters are missing
      * @example
      * ```typescript
      * interface User {
@@ -694,7 +660,6 @@ export class GetQueryClient {
      * 
      * // Get distinct department values for active users
      * const result = await getClient.distinct<string[]>(
-     *   'myproject',
      *   'users',
      *   [
      *     { field: 'active', value: true },
@@ -710,18 +675,17 @@ export class GetQueryClient {
      * ```
      */
     async distinct<T>(
-        project: string,
         table: string,
         queryFilters?: QueryFilter[],
         options?: Pick<QueryOptions, 'skip' | 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!project || !table || !queryFilters?.length) {
-            throw new Error('Project, table and field are required');
+        if (!table || !queryFilters?.length) {
+            throw new Error('Table name and queryFilters are required');
         }
 
         return this.baseClient['request']<T>(
-            'GET', 
-            `${project}/${table}/distinct`,
+            'GET',
+            `${table}/distinct`,
             queryFilters,
             options
         );
