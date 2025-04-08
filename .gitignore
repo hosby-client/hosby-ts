@@ -24,6 +24,9 @@ dist
 dist-ssr
 *.local
 
+#Package
+*.tgz
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

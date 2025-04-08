@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
       "target": "ES6",
-      "module": "CommonJS",
+      "module": "ESNext",
       "esModuleInterop": true,
       "declaration": true,
       "moduleResolution": "node",
@@ -9,8 +9,9 @@
       "strict": true,
       "lib": ["es2020", "dom"],
       "skipLibCheck": true,
+      "sourceMap": true
     },
-    "include": ["src/**/*.ts", "tests/**/*.ts"],
+    "include": ["src/**/*.ts"],
     "exclude": ["node_modules", "dist", "__tests__"]
   }
   
