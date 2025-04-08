@@ -1328,14 +1328,13 @@ export function createClient(config: BaseClientConfig | SecureClientConfig): Hos
   return new HosbyClient(config);
 }
 
-// Export public types for consumer usage
-export type {
-  BaseClientConfig,
-  SecureClientConfig,
-  QueryOptions,
-  QueryFilter,
-  ApiResponse
-};
+
+// Optionnel mais utile pour les utilisateurs avancés
+export { BaseClient, SecureClientConfig } from './clients/BaseClient';
+export { HosbyClient as CrudClient } from './clients/crud';
+export type { ApiResponse, BaseClientConfig, QueryFilter, QueryOptions } from './types';
+
+
 
 /**
  * Default export of the main HosbyClient class.
