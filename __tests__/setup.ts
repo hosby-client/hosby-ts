@@ -1,8 +1,37 @@
 // Global mocks for browser environment in Node.js
 global.window = {} as any;
 
-// Mock fetch API
-global.fetch = jest.fn();
+// Import and setup fetch mock
+import fetchMock from 'jest-fetch-mock';
+fetchMock.enableMocks();
+
+// Mock fetch API with default implementation
+// This can be overridden in specific tests
+global.fetch = jest.fn().mockImplementation((url, options) => {
+  // Always log request headers for debugging
+  console.log('Request Headers:', options?.headers);
+  
+  return Promise.resolve({
+    ok: true,
+    status: 200,
+    headers: {
+      get: jest.fn().mockImplementation((name) => {
+        // Return a mock CSRF token when requested
+        if (name === 'X-CSRF-Token') {
+          return 'mock-csrf-token';
+        }
+        return null;
+      })
+    },
+    // Provide a default successful response with CSRF token in data
+    json: async () => ({
+      success: true,
+      status: 200,
+      message: 'CSRF token generated',
+      data: { token: 'mock-csrf-token' }
+    })
+  });
+});
 
 // Mock FileReader if needed
 class MockFileReader {
@@ -45,13 +74,59 @@ global.sessionStorage = sessionStorageMock as any;
 global.URL.createObjectURL = jest.fn(() => 'mock-url');
 global.URL.revokeObjectURL = jest.fn();
 
-// JSEncrypt mock
+// Create a proper mock for CryptoJS with all expected properties
+const mockCryptoJS = {
+  SHA256: jest.fn().mockImplementation((data) => ({
+    toString: jest.fn().mockReturnValue('mocked-hash')
+  })),
+  enc: {
+    Hex: {},
+    Base64: {},
+    Utf8: {}
+  },
+  AES: {
+    encrypt: jest.fn().mockReturnValue({
+      toString: jest.fn().mockReturnValue('encrypted-data')
+    }),
+    decrypt: jest.fn().mockReturnValue({
+      toString: jest.fn().mockReturnValue('decrypted-data')
+    })
+  },
+  lib: {
+    WordArray: {
+      random: jest.fn().mockReturnValue({
+        toString: jest.fn().mockReturnValue('random-data')
+      })
+    }
+  },
+  mode: {
+    CBC: {}
+  },
+  pad: {
+    Pkcs7: {}
+  }
+};
+
+// Mock JSEncrypt
 jest.mock('jsencrypt', () => {
   return {
     __esModule: true,
-    default: jest.fn().mockImplementation(() => ({
-      setPrivateKey: jest.fn(),
-      sign: jest.fn().mockReturnValue('mocked-signature')
-    }))
+    default: jest.fn().mockImplementation(() => {
+      return {
+        setPrivateKey: jest.fn(),
+        setPublicKey: jest.fn(),
+        sign: jest.fn().mockReturnValue('mocked-signature'),
+        verify: jest.fn().mockReturnValue(true),
+        encrypt: jest.fn().mockReturnValue('mocked-encrypted-data'),
+        decrypt: jest.fn().mockReturnValue('mocked-decrypted-data')
+      };
+    })
   };
 });
+
+// Apply CryptoJS mock
+jest.mock('crypto-js', () => mockCryptoJS);
+
+// Make CryptoJS available globally for any tests that need direct access
+// @ts-ignore - Adding CryptoJS to global for testing purposes
+global.CryptoJS = mockCryptoJS;

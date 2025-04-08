@@ -29,8 +29,9 @@ describe('HosbyClient', () => {
     const config: BaseClientConfig = {
         baseURL: 'https://api.hosby.com',
         privateKey: 'mock-private-key',
-        publicKeyId: 'mock-public-key-id',
         projectId: 'mock-project-id',
+        projectName: 'mockprojectname',
+        apiKeyId: 'mock-api-key-id',
         userId: 'mock-user-id'
     };
 
@@ -131,11 +132,27 @@ describe('HosbyClient', () => {
             }).toThrow(/baseURL, privateKey, publicKeyId, projectId and userId are required/);
         });
 
-        test('should return HosbyClient instance with valid config', () => {
-            const client = createClient(config);
+        test('should return HosbyClient instance when all required config fields are provided', () => {
+            const validConfig = {
+                baseURL: 'https://api.example.com',
+                privateKey: 'test-private-key',
+                publicKeyId: 'test-public-key-id', 
+                projectId: 'test-project-id',
+                userId: 'test-user-id'
+            };
+
+            const client = createClient({
+                ...validConfig,
+                apiKeyId: 'test-api-key-id',
+                projectName: 'test-project-name'
+            });
 
             expect(client).toBeInstanceOf(HosbyClient);
-            expect(BaseClient).toHaveBeenCalledWith(config);
+            expect(BaseClient).toHaveBeenCalledWith({
+                ...validConfig,
+                apiKeyId: 'test-api-key-id', 
+                projectName: 'test-project-name'
+            });
         });
     });
 
@@ -170,9 +187,9 @@ describe('HosbyClient', () => {
             const filters = [{ field: 'active', value: true }];
             const options = { limit: 10 };
 
-            await client.find(project, table, filters, options);
+            await client.find(table, filters, options);
 
-            expect(mockFindImpl).toHaveBeenCalledWith(project, table, filters, options);
+            expect(mockFindImpl).toHaveBeenCalledWith(table, filters, options);
         });
 
         test('should delegate insertOne() to PostQueryClient.insertOne', async () => {
@@ -182,9 +199,9 @@ describe('HosbyClient', () => {
             const data = { name: 'Test User' };
             const options = { populate: ['profile'] };
 
-            await client.insertOne(project, table, data, options);
+            await client.insertOne(table, data, options);
 
-            expect(mockInsertOneImpl).toHaveBeenCalledWith(project, table, data, options);
+            expect(mockInsertOneImpl).toHaveBeenCalledWith(table, data, options);
         });
 
         test('should delegate replaceOne() to PutQueryClient.replaceOne', async () => {
@@ -194,9 +211,9 @@ describe('HosbyClient', () => {
             const filters = [{ field: 'id', value: '123' }];
             const data = { name: 'Updated User' };
 
-            await client.replaceOne(project, table, filters, data);
+            await client.replaceOne(table, filters, data);
 
-            expect(mockReplaceOneImpl).toHaveBeenCalledWith(project, table, filters, data);
+            expect(mockReplaceOneImpl).toHaveBeenCalledWith(table, filters, data);
         });
 
         test('should delegate updateOne() to PatchQueryClient.updateOne', async () => {
@@ -206,9 +223,9 @@ describe('HosbyClient', () => {
             const filters = [{ field: 'id', value: '123' }];
             const data = { status: 'active' };
 
-            await client.updateOne(project, table, filters, data);
+            await client.updateOne(table, filters, data);
 
-            expect(mockUpdateOneImpl).toHaveBeenCalledWith(project, table, filters, data);
+            expect(mockUpdateOneImpl).toHaveBeenCalledWith(table, filters, data);
         });
 
         test('should delegate deleteOne() to DeleteQueryClient.deleteOne', async () => {
@@ -217,16 +234,16 @@ describe('HosbyClient', () => {
             const table = 'users';
             const filters = [{ field: 'id', value: '123' }];
 
-            await client.deleteOne(project, table, filters);
+            await client.deleteOne(table, filters);
 
-            expect(mockDeleteOneImpl).toHaveBeenCalledWith(project, table, filters);
+            expect(mockDeleteOneImpl).toHaveBeenCalledWith(table, filters);
         });
 
         test('should propagate errors from delegated methods', async () => {
             mockFindImpl.mockRejectedValueOnce(new Error('Find failed'));
 
             const client = new HosbyClient(config);
-            await expect(client.find('project', 'table', [])).rejects.toThrow('Find failed');
+            await expect(client.find('table', [])).rejects.toThrow('Find failed');
         });
     });
 });

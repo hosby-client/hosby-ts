@@ -78,9 +78,10 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
         client = new BaseClient({
             baseURL: 'https://api.hosby.com',
             privateKey: testPrivateKey,
-            publicKeyId: 'test-public-key-id',
             projectId: 'test-project-id',
-            userId: 'test-user-id'
+            userId: 'test-user-id',
+            apiKeyId: 'test-api-key-id',
+            projectName: 'testproject'
         });
 
         await client.init();
@@ -146,9 +147,10 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
                 const client = new BaseClient({
                     baseURL: 'https://api.hosby.com',
                     privateKey: testPrivateKey,
-                    publicKeyId: 'test-public-key-id',
                     projectId: 'test-project-id',
-                    userId: 'test-user-id'
+                    userId: 'test-user-id',
+                    apiKeyId: 'test-api-key-id',
+                    projectName: 'testprojectname'
                 });
 
                 // Access the private method for testing
@@ -168,14 +170,14 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
                 Object.defineProperty(CryptoJS, 'SHA256', { value: originalSHA256, writable: true });
             }
         });
-
         test('should throw error when signing data without private key', async () => {
             const client = new BaseClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: testPrivateKey,
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
-                userId: 'test-user-id'
+                userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'testprojectname'
             });
 
             const signWithPrivateKey = (client as any)['signWithPrivateKey'].bind(client);
@@ -204,9 +206,10 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
             const client = new BaseClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: testPrivateKey,
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
-                userId: 'test-user-id'
+                userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'testprojectname'
             });
 
             const signWithPrivateKey = (client as any)['signWithPrivateKey'].bind(client);
@@ -228,9 +231,10 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
             const client = new BaseClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: testPrivateKey,
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
-                userId: 'test-user-id'
+                userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'testprojectname'
             });
 
             const signWithPrivateKey = (client as any)['signWithPrivateKey'].bind(client);
@@ -247,9 +251,10 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
             const config: SecureClientConfig = {
                 baseURL: 'https://api.hosby.com',
                 privateKey: testPrivateKey,
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
-                userId: 'test-user-id'
+                userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'testprojectname'
             };
 
             const client = new BaseClient(config);
@@ -278,7 +283,7 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
                 const headers = (global.fetch as jest.Mock).mock.calls[0][1].headers;
                 expect(headers['x-signature']).toBeDefined();
                 expect(headers['x-timestamp']).toBe('1633046400000');
-                expect(headers['x-api-key']).toBe('test-public-key-id_test-project-id_test-user-id');
+                expect(headers['x-api-key']).toBe('test-api-key-id_test-project-id_test-user-id');
 
                 // Verify JSEncrypt was called with correct data to sign
                 const JSEncrypt = require('jsencrypt').default;
@@ -298,9 +303,10 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
             const client = new BaseClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: invalidKey,
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
-                userId: 'test-user-id'
+                userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'testprojectname'
             });
 
             await client.init();
@@ -332,9 +338,10 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
             const client = new BaseClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: testPrivateKey,
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
-                userId: 'test-user-id'
+                userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'testprojectname'
             });
 
             await client.init();
@@ -387,9 +394,10 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
             const client = new BaseClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: testPrivateKey,
-                publicKeyId: 'key123',
                 projectId: 'project456',
-                userId: 'user789'
+                userId: 'user789',
+                apiKeyId: 'key123',
+                projectName: 'project456'
             });
 
             await client.init();

@@ -44,7 +44,7 @@ export class DeleteQueryClient {
         table: string,
         queryFilters: QueryFilter[]
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error('Table and filters are required');
         }
 
@@ -94,7 +94,7 @@ export class DeleteQueryClient {
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error('Table and queryFilters are required');
         }
 
@@ -152,7 +152,7 @@ export class DeleteQueryClient {
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error('Table and queryFilters are required');
         }
 
@@ -211,7 +211,7 @@ export class DeleteQueryClient {
         queryFilters: QueryFilter[],
         options: { limit?: number } = {}
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error('Table and query filters are required');
         }
 
@@ -262,7 +262,7 @@ export class DeleteQueryClient {
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error(`Table and query filter ' token ' are required`);
         }
 
@@ -312,7 +312,7 @@ export class DeleteQueryClient {
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error(`Table and query filter ' id ' are required`);
         }
 

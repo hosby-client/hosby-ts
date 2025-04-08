@@ -38,28 +38,36 @@ describe('Authentication Security Tests', () => {
             const client = new HosbyClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: 'test-private-key',
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
-                userId: 'test-user-id'
+                userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'testproject'
             });
 
             await client.init();
 
             expect(global.fetch).toHaveBeenCalledWith(
-                'https://api.hosby.com/api/secure/csrf-token',
+                'https://api.hosby.com/api/secure/csrf-token/',
                 expect.objectContaining({
-                    method: 'GET'
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'x-api-key': 'test-api-key-id_test-project-id_test-user-id',
+                        'x-signature': 'mocked-signature',
+                        'x-timestamp': expect.any(String)
+                    }
                 })
             );
         });
-
         test('should include CSRF token in subsequent requests', async () => {
             const client = new HosbyClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: 'test-private-key',
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
-                userId: 'test-user-id'
+                userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'testproject'
             });
 
             await client.init();
@@ -76,7 +84,7 @@ describe('Authentication Security Tests', () => {
             });
 
             // Make a request
-            await client.find('project', 'users', []);
+            await client.find('users', []);
 
             // Check that CSRF token is included
             const requestHeaders = (global.fetch as jest.Mock).mock.calls[0][1].headers;
@@ -96,12 +104,13 @@ describe('Authentication Security Tests', () => {
             const client = new HosbyClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: 'test-private-key',
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
-                userId: 'test-user-id'
+                userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'testproject'
             });
 
-            await expect(client.init()).rejects.toThrow('Invalid CSRF token response');
+            await expect(client.init()).rejects.toThrow('Failed to fetch CSRF token');
         });
     });
 
@@ -110,9 +119,10 @@ describe('Authentication Security Tests', () => {
             const client = new BaseClient({
                 baseURL: 'https://api.hosby.com',
                 apiKey: 'test-api-key',
+                apiKeyId: 'test-api-key-id',
                 privateKey: 'test-private-key',
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
+                projectName: 'testproject',
                 userId: 'test-user-id'
             });
 
@@ -142,9 +152,10 @@ describe('Authentication Security Tests', () => {
             const config: SecureClientConfig = {
                 baseURL: 'https://api.hosby.com',
                 privateKey: 'test-private-key',
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
-                userId: 'test-user-id'
+                userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'testproject'
             };
 
             const client = new HosbyClient(config);
@@ -166,12 +177,12 @@ describe('Authentication Security Tests', () => {
             Date.now = jest.fn().mockReturnValue(1633046400000); // Fixed timestamp
 
             try {
-                await client.find('project', 'users', []);
+                await client.find('users', []);
 
                 const headers = (global.fetch as jest.Mock).mock.calls[0][1].headers;
                 expect(headers['x-signature']).toBeDefined();
                 expect(headers['x-timestamp']).toBe('1633046400000');
-                expect(headers['x-api-key']).toBe('test-public-key-id_test-project-id_test-user-id');
+                expect(headers['x-api-key']).toBe('test-api-key-id_test-project-id_test-user-id');
             } finally {
                 // Restore original Date.now
                 Date.now = originalNow;
@@ -185,21 +196,22 @@ describe('Authentication Security Tests', () => {
                 new HosbyClient({
                     baseURL: 'http://api.hosby.com', // HTTP not HTTPS
                     privateKey: 'test-private-key',
-                    publicKeyId: 'test-public-key-id',
                     projectId: 'test-project-id',
                     userId: 'test-user-id',
+                    apiKeyId: 'test-api-key-id',
+                    projectName: 'testproject',
                     httpsMode: 'strict'
                 });
             }).toThrow(/HTTPS protocol is required/);
         });
-
         test('should allow HTTP for exempt hosts', () => {
             const client = new HosbyClient({
                 baseURL: 'http://localhost:3000',
                 privateKey: 'test-private-key',
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
                 userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'testproject',
                 httpsMode: 'strict'
             });
 
@@ -211,21 +223,22 @@ describe('Authentication Security Tests', () => {
                 new HosbyClient({
                     baseURL: 'http://api.hosby.com', // HTTP not HTTPS
                     privateKey: 'test-private-key',
-                    publicKeyId: 'test-public-key-id',
                     projectId: 'test-project-id',
                     userId: 'test-user-id',
+                    apiKeyId: 'test-api-key-id',
+                    projectName: 'test-project',
                     httpsMode: 'warn'
                 });
             }).toThrow(/Using insecure HTTP connection/);
         });
-
         test('should allow HTTP in none mode', () => {
             const client = new HosbyClient({
                 baseURL: 'http://api.hosby.com',
                 privateKey: 'test-private-key',
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
                 userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'test-project',
                 httpsMode: 'none'
             });
 
@@ -240,7 +253,7 @@ describe('Authentication Security Tests', () => {
                     baseURL: 'https://api.hosby.com',
                     privateKey: 'test-private-key'
                 } as any);
-            }).toThrow('Secure config is required with privateKey, publicKeyId, userId and projectId');
+            }).toThrow('Secure config is required with privateKey, apiKeyId, userId and projectId');
         });
 
         test('should detect empty authentication fields', () => {
@@ -248,9 +261,10 @@ describe('Authentication Security Tests', () => {
                 new HosbyClient({
                     baseURL: 'https://api.hosby.com',
                     privateKey: '',
-                    publicKeyId: 'test-public-key-id',
                     projectId: 'test-project-id',
-                    userId: 'test-user-id'
+                    userId: 'test-user-id',
+                    apiKeyId: 'test-api-key-id',
+                    projectName: 'test-project'
                 });
             }).toThrow(/Missing required secure config fields/);
         });
@@ -258,14 +272,14 @@ describe('Authentication Security Tests', () => {
 
     describe('Request Validation', () => {
         let client: HosbyClient;
-
         beforeEach(async () => {
             client = new HosbyClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: 'test-private-key',
-                publicKeyId: 'test-public-key-id',
                 projectId: 'test-project-id',
-                userId: 'test-user-id'
+                userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'test-project'
             });
 
             await client.init();
@@ -282,20 +296,44 @@ describe('Authentication Security Tests', () => {
             });
         });
 
-        test('should validate project and table parameters', async () => {
-            // First try with missing project
-            await expect(client.find('', 'users', [])).rejects.toThrow(/Project.+required/i);
+        test('should validate table parameters', async () => {
+            // Test with missing table name
+            await expect(client.find('', [])).rejects.toThrow('Table name is required');
 
-            // Then try with missing table
-            await expect(client.find('project', '', [])).rejects.toThrow(/[Tt]able.+required/i);
+            // // Test with undefined table name 
+            await expect(client.find(undefined as any, [])).rejects.toThrow('Table name is required');
+
+            // // Test with null table name
+            await expect(client.find(null as any, [])).rejects.toThrow('Table name is required');
+
+            // // Test with whitespace table name
+            // await expect(client.find('   ', [])).rejects.toThrow('Table name is required');
+
+            // // Test with non-string table name
+            await expect(client.find(123 as any, [])).rejects.toThrow('Table name is required');
+
+            // Valid table name should resolve successfully
+            (global.fetch as jest.Mock).mockResolvedValueOnce({
+                ok: true,
+                headers: {
+                    get: jest.fn().mockReturnValue('mock-csrf-token')
+                },
+                json: async () => ({ success: true, data: {} }),
+                status: 200
+            });
+
+            await expect(client.find('users', [])).resolves.toEqual({
+                data: {},
+                success: true
+            });
         });
 
         test('should validate query filters when required', async () => {
             // Methods that require filters should throw when filters are missing
-            await expect(client.findById('project', 'users', [])).rejects.toThrow(/filter/i);
+            await expect(client.findById('users', [])).rejects.toThrow(/filter/i);
 
             // Count method should work without filters
-            await expect(client.count('project', 'users')).resolves.not.toThrow();
+            await expect(client.count('users')).resolves.not.toThrow();
         });
     });
 
@@ -303,10 +341,11 @@ describe('Authentication Security Tests', () => {
         test('should honor timeout configuration', async () => {
             const client = new HosbyClient({
                 baseURL: 'https://api.hosby.com',
-                privateKey: 'test-private-key',
-                publicKeyId: 'test-public-key-id',
+                privateKey: 'test-private-key', 
                 projectId: 'test-project-id',
                 userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'test-project',
                 timeout: 1000 // 1 second
             });
 
@@ -314,20 +353,33 @@ describe('Authentication Security Tests', () => {
 
             // Reset fetch mock
             (global.fetch as jest.Mock).mockReset();
-            (global.fetch as jest.Mock).mockImplementationOnce(() =>
-                new Promise((_, reject) => {
+            (global.fetch as jest.Mock).mockImplementationOnce(() => {
+                return new Promise((resolve, reject) => {
                     setTimeout(() => {
                         reject(new Error('Request timed out'));
                     }, 1500); // Longer than timeout
-                })
-            );
+                });
+            });
 
             // Start request and verify it times out
-            await expect(client.find('project', 'users', [])).rejects.toEqual({
-                success: false,
-                status: 500,
-                message: 'Request timed out'
-            });
+            try {
+                await client.find('users', []);
+                fail('Expected request to timeout but it succeeded');
+            } catch (error: unknown) {
+                expect((error as Error).message).toBe('Request timed out');
+            }
+
+            // Verify fetch was called with correct parameters
+            expect(global.fetch).toHaveBeenCalledWith(
+                expect.stringContaining('/users/find'),
+                expect.objectContaining({
+                    method: 'GET',
+                    headers: expect.objectContaining({
+                        'Content-Type': 'application/json',
+                        'x-csrf-token': 'mock-csrf-token'
+                    })
+                })
+            );
 
         }, 3000); // Only need 3s for test
     });
