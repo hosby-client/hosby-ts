@@ -1,12 +1,13 @@
 {
   "name": "hosby-ts",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "TypeScript client library to consume APIs created on Hosby.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "type": "module",
   "target": "ES6",
   "types": "dist/hosby.d.ts",
+  "typings": "dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.js",

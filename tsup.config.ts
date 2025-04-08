@@ -8,6 +8,7 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   minify: true,
-  outDir: 'dist',
-  treeshake: true
+  treeshake: true,
+  external: ['crypto-js', 'jsencrypt'],
+  outDir: 'dist'
 });
