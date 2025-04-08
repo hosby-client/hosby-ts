@@ -35,6 +35,7 @@ export class HosbyClient {
     this.baseClient = new BaseClient(config);
     this.crudClient = new CrudClient(this.baseClient);
 
+
     // Bind CRUD methods
     this.find = (...args) => this.crudClient.get.find(...args);
     this.find = (...args) => this.crudClient.get.find(...args);

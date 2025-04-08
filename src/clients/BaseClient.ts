@@ -226,11 +226,30 @@ export class BaseClient {
    */
   public async init(): Promise<void> {
     const response = await this.request<{ token: string }>('GET', 'api/secure/csrf-token');
-    const data = response?.data as { token?: string };
-    if (!data || !data.token) {
+    
+    // Check if response is successful and has data
+    if (!response || !response.success) {
+      throw new Error('Failed to fetch CSRF token');
+    }
+    
+    // Check if data exists and has the expected structure
+    if (!response.data) {
+      throw new Error('Invalid CSRF token response: missing data');
+    }
+    
+    // Try to access token from data, handling both object and direct value formats
+    let token: string | undefined;
+    if (typeof response.data === 'object' && response.data !== null) {
+      token = (response.data as { token?: string }).token;
+    } else if (typeof response.data === 'string') {
+      token = response.data;
+    }
+    
+    if (!token) {
       throw new Error('Invalid CSRF token response: token missing from response data');
     }
-    this.csrfToken = data.token;
+    
+    this.csrfToken = token;
   }
 
   /**

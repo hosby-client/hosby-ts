@@ -55,7 +55,7 @@ export class PostQueryClient {
         data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !data) {
+        if (!table || typeof table !== 'string' || !data) {
             throw new Error('Table and data are required');
         }
 
@@ -123,7 +123,7 @@ export class PostQueryClient {
         data: D[],
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !data) {
+        if (!table || typeof table !== 'string' || !data) {
             throw new Error('Table and data are required');
         }
 
@@ -190,8 +190,8 @@ export class PostQueryClient {
         data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!table) {
-            throw new Error('Table and data are required');
+        if (!table || typeof table !== 'string') {
+            throw new Error('Table name is required and must be a string');
         }
 
         if (!filters?.length) {

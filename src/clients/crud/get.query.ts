@@ -66,8 +66,8 @@ export class GetQueryClient {
         queryFilters?: QueryFilter[],
         options?: QueryOptions
     ): Promise<ApiResponse<T>> {
-        if (!table) {
-            throw new Error('Table name is required');
+        if (!table || typeof table !== 'string') {
+            throw new Error('Table name is required and must be a string');
         }
 
         return this.baseClient['request']<T>(
@@ -116,7 +116,7 @@ export class GetQueryClient {
         table: string,
         queryFilters: QueryFilter[]
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error('Table name and query filters are required');
         }
 
@@ -164,7 +164,7 @@ export class GetQueryClient {
         table: string,
         queryFilters: QueryFilter[],
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error(`Table name and filter 'Email' required`);
         }
 
@@ -220,7 +220,7 @@ export class GetQueryClient {
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error(`Table name and 'Token' is required`);
         }
 
@@ -279,7 +279,7 @@ export class GetQueryClient {
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'populate' | 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error('Table name and query filters are required');
         }
 
@@ -331,7 +331,7 @@ export class GetQueryClient {
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error('Table name and query filters are required');
         }
 
@@ -386,7 +386,7 @@ export class GetQueryClient {
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error('Table name and query filters are required');
         }
 
@@ -442,7 +442,7 @@ export class GetQueryClient {
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error('Table name and query filters are required');
         }
 
@@ -512,7 +512,7 @@ export class GetQueryClient {
         queryFilters: QueryFilter[],
         options: QueryOptions
     ): Promise<ApiResponse<T>> {
-        if (!table || !options?.populate) {
+        if (!table || typeof table !== 'string' || !options?.populate) {
             throw new Error('Table name and populate options are required');
         }
 
@@ -565,8 +565,8 @@ export class GetQueryClient {
         table: string,
         queryFilters?: QueryFilter[]
     ): Promise<ApiResponse<T>> {
-        if (!table) {
-            throw new Error('Table name is required');
+        if (!table || typeof table !== 'string') {
+            throw new Error('Table name is required and must be a string');
         }
 
         return this.baseClient['request']<T>(
@@ -622,8 +622,8 @@ export class GetQueryClient {
         queryFilters?: QueryFilter[],
         options?: Pick<QueryOptions, 'skip' | 'limit' | 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!table) {
-            throw new Error('Table name is required');
+        if (!table || typeof table !== 'string') {
+            throw new Error('Table name is required and must be a string');
         }
 
         return this.baseClient['request']<T>(
@@ -679,7 +679,7 @@ export class GetQueryClient {
         queryFilters?: QueryFilter[],
         options?: Pick<QueryOptions, 'skip' | 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error('Table name and queryFilters are required');
         }
 

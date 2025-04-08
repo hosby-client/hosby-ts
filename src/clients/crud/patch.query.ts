@@ -57,7 +57,7 @@ export class PatchQueryClient {
         data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters?.length) {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
             throw new Error('Table and filters are required');
         }
 
@@ -122,8 +122,8 @@ export class PatchQueryClient {
         data: D,
         options?: Pick<QueryOptions, 'populate' | 'limit'>
     ): Promise<ApiResponse<T>> {
-        if (!table) {
-            throw new Error('Table is required');
+        if (!table || typeof table !== 'string') {
+            throw new Error('Table name is required and must be a string');
         }
 
         return this.baseClient['request']<T>(
@@ -186,7 +186,7 @@ export class PatchQueryClient {
         data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!table || !queryFilters.length) {
+        if (!table || typeof table !== 'string' || !queryFilters.length) {
             throw new Error('Table and queryFilters are required');
         }
 
