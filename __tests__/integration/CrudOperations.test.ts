@@ -143,7 +143,9 @@ describe('CRUD Operations Integration', () => {
             'x-signature': 'mocked-signature',
             'x-timestamp': expect.any(String),
             'x-csrf-token': 'mock-csrf-token'
-          }
+          },
+          'credentials': 'include',
+          'mode': 'cors',
         }
       );
     });

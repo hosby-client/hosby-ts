@@ -100,8 +100,10 @@ describe('BaseClient', () => {
                         'Content-Type': 'application/json',
                         'x-api-key': 'test-api-key-id_test-project-id_test-user-id',
                         'x-signature': 'mocked-signature',
-                        'x-timestamp': '1743978457316'
-                    }
+                        'x-timestamp': '1743978457316',
+                    },
+                    'credentials': 'include',
+                    'mode': 'cors',
                 })
             );
         });
@@ -132,7 +134,9 @@ describe('BaseClient', () => {
                         'x-api-key': 'test-api-key-id_test-project-id_test-user-id',
                         'x-signature': 'mocked-signature',
                         'x-timestamp': '1743978457323'
-                    }
+                    },
+                    'credentials': 'include',
+                    'mode': 'cors',
                 })
             );
         });
@@ -214,7 +218,9 @@ describe('BaseClient', () => {
                         'x-api-key': 'test-api-key-id_test-project-id_test-user-id',
                         'x-signature': 'mocked-signature',
                         'x-timestamp': expect.any(String)
-                    }
+                    },
+                    'credentials': 'include',
+                    'mode': 'cors'
                 }
             );
 

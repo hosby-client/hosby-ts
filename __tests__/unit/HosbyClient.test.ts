@@ -182,7 +182,6 @@ describe('HosbyClient', () => {
 
         test('should delegate find() to GetQueryClient.find', async () => {
             const client = new HosbyClient(config);
-            const project = 'workspace';
             const table = 'users';
             const filters = [{ field: 'active', value: true }];
             const options = { limit: 10 };
@@ -194,7 +193,6 @@ describe('HosbyClient', () => {
 
         test('should delegate insertOne() to PostQueryClient.insertOne', async () => {
             const client = new HosbyClient(config);
-            const project = 'workspace';
             const table = 'users';
             const data = { name: 'Test User' };
             const options = { populate: ['profile'] };
@@ -206,7 +204,6 @@ describe('HosbyClient', () => {
 
         test('should delegate replaceOne() to PutQueryClient.replaceOne', async () => {
             const client = new HosbyClient(config);
-            const project = 'workspace';
             const table = 'users';
             const filters = [{ field: 'id', value: '123' }];
             const data = { name: 'Updated User' };
@@ -218,7 +215,6 @@ describe('HosbyClient', () => {
 
         test('should delegate updateOne() to PatchQueryClient.updateOne', async () => {
             const client = new HosbyClient(config);
-            const project = 'workspace';
             const table = 'users';
             const filters = [{ field: 'id', value: '123' }];
             const data = { status: 'active' };
@@ -230,7 +226,6 @@ describe('HosbyClient', () => {
 
         test('should delegate deleteOne() to DeleteQueryClient.deleteOne', async () => {
             const client = new HosbyClient(config);
-            const project = 'workspace';
             const table = 'users';
             const filters = [{ field: 'id', value: '123' }];
 
