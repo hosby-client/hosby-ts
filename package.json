@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm prune --production && npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint \"src/**/*.ts\"",
@@ -54,7 +54,6 @@
   },
   "files": [
     "dist",
-    "src",
     "LICENSE",
     "README.md"
   ],

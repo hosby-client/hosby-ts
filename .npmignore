@@ -1,8 +1,11 @@
 node_modules
-src
+src/
 tsconfig.json
 .gitignore
 __tests__/
+tests/
 *.test.ts
 jest.config.js
 eslint.config.js
+eslint.config.mjs
+jest.config.mjs
