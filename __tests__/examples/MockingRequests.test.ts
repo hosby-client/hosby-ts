@@ -123,7 +123,9 @@ describe('MockingRequests Example - Global Mocking', () => {
                     'x-signature': 'mocked-signature',
                     'x-timestamp': expect.any(String)
                 }),
-                method: 'GET'
+                method: 'GET',
+                'credentials': 'include',
+                'mode': 'cors'
             })
         );
     });
@@ -867,8 +869,6 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             
             // Verify the fetch was called with the right parameters
             expect(global.fetch).toHaveBeenCalled();
-            // Add more detailed assertions to debug the issue
-            console.log('Success result:', JSON.stringify(successResult));
 
             // Test failed login - wrong password
             const failedResult1 = await performLogin('valid@example.com', 'wrong-password');
