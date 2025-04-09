@@ -310,6 +310,8 @@ export class BaseClient {
     const requestOptions: RequestInit = {
       method,
       headers,
+      credentials: 'include',
+      mode: 'cors',
       ...(method !== 'GET' && data ? { body: JSON.stringify(data) } : {})
     };
 
