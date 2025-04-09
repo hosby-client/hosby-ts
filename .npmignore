@@ -2,3 +2,7 @@ node_modules
 src
 tsconfig.json
 .gitignore
+__tests__/
+*.test.ts
+jest.config.js
+eslint.config.js
