@@ -113,7 +113,7 @@ describe('MockingRequests Example - Global Mocking', () => {
 
         // Verify correct URL was called with proper format
         expect(global.fetch).toHaveBeenCalledWith(
-            "https://api.hosby.com/users/findById/?id=123",
+            "https://api.hosby.com/testproject/users/findById/?id=123",
             expect.objectContaining({
                 headers: expect.objectContaining({
                     'Accept': 'application/json',

@@ -204,7 +204,7 @@ describe('BaseClient', () => {
 
             // Verify the URL and request options
             expect(global.fetch).toHaveBeenCalledWith(
-                'https://api.hosby.com/test/path/?name=test',
+                'https://api.hosby.com/testproject/test/path/?name=test',
                 {
                     method: 'GET',
                     headers: {
@@ -213,7 +213,7 @@ describe('BaseClient', () => {
                         'x-csrf-token': 'mock-csrf-token',
                         'x-api-key': 'test-api-key-id_test-project-id_test-user-id',
                         'x-signature': 'mocked-signature',
-                        'x-timestamp': '1743978457323'
+                        'x-timestamp': expect.any(String)
                     }
                 }
             );

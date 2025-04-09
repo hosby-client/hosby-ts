@@ -133,7 +133,7 @@ describe('CRUD Operations Integration', () => {
       
       // Check that the request was made with the correct URL format and headers
       expect(fetchMock).toHaveBeenCalledWith(
-        "https://api.example.com/users/findById/?id=1",
+        "https://api.example.com/mock-project/users/findById/?id=1",
         {
           method: 'GET',
           headers: {

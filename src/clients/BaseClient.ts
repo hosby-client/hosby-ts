@@ -162,7 +162,7 @@ export class BaseClient {
     return 'privateKey' in config && 'apiKeyId' in config;
   }
 
-  
+
   /**
    * Checks if a given URL is exempt from HTTPS requirement
    * @param baseURL The URL to check
@@ -277,7 +277,12 @@ export class BaseClient {
     if (!method || !path) {
       throw new Error('Method and path are required');
     }
-    const url = new URL(`${path}/`, `${this.baseURL}/${this.authConfig.projectName}`);
+
+    const url = new URL(
+      path === "api/secure/csrf-token"
+        ? `${this.baseURL}/${path}`
+        : `${this.baseURL}/${this.authConfig.projectName}/${path}`
+    );
 
     if (queryFilters?.length) {
       const filtersByField = queryFilters.reduce<Record<string, unknown[]>>((acc, filter) => {
@@ -307,6 +312,10 @@ export class BaseClient {
       headers,
       ...(method !== 'GET' && data ? { body: JSON.stringify(data) } : {})
     };
+
+    if (!url.pathname.endsWith('/')) {
+      url.pathname += '/';
+    }
 
     try {
       const response = await fetch(url.toString(), requestOptions);
