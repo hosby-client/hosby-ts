@@ -13,25 +13,29 @@ import { DeleteQueryClient } from "./delete.query";
  * ```typescript
  * const baseClient = new BaseClient({
  *   baseURL: 'https://api.example.com',
- *   apiKey: 'your-api-key'
+ *   privateKey: 'your-private-key',
+ *   apiKeyId: 'your-api-key-id',
+ *   projectName: 'your-project-name',
+ *   projectId: 'your-project-id',
+ *   userId: 'your-user-id'
  * });
  * 
  * const client = new HosbyClient(baseClient);
  * 
  * // Use get client
- * const users = await client.get.find('project', 'users');
+ * const users = await client.get.find('users');
  * 
  * // Use post client
- * const newUser = await client.post.create('project', 'users', { name: 'New User' });
+ * const newUser = await client.post.create('users', { name: 'New User' });
  * 
  * // Use put client
- * await client.put.replace('project', 'users', userId, { name: 'Updated User' });
+ * await client.put.replace('users', userId, { name: 'Updated User' });
  * 
  * // Use patch client 
- * await client.patch.updateOne('project', 'users', userId, { name: 'Modified Name' });
+ * await client.patch.updateOne('users', userId, { name: 'Modified Name' });
  * 
  * // Use delete client
- * await client.delete.removeOne('project', 'users', userId);
+ * await client.delete.removeOne('users', userId);
  * ```
  */
 export class HosbyClient {
@@ -96,7 +100,11 @@ export class HosbyClient {
  * ```typescript
  * const baseClient = new BaseClient({
  *   baseURL: 'https://api.example.com',
- *   apiKey: 'your-api-key'
+ *   privateKey: 'your-private-key',
+ *   apiKeyId: 'your-api-key-id',
+ *   projectName: 'your-project-name',
+ *   projectId: 'your-project-id',
+ *   userId: 'your-user-id'
  * });
  * 
  * const client = createClient(baseClient);
