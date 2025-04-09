@@ -5,15 +5,20 @@
  * @returns The formatted PEM string with proper headers and line breaks
  */
 export const formatPEM = (keyData: string, type = 'PRIVATE KEY'): string => {
-  // Remove all headers, spaces, and existing line breaks
-  const cleanedKey = keyData.replace(/-----(BEGIN|END) .*?-----|\s/g, '');
+    // Remove sk_ or pk_ prefix if present
+    const keyWithoutPrefix = keyData.replace(/^(sk_|pk_)/, '');
 
-  // Split key into 64 character lines
-  const chunks = [];
-  for (let i = 0; i < cleanedKey.length; i += 64) {
-    chunks.push(cleanedKey.substring(i, i + 64));
-  }
+    const trimmedKey = keyWithoutPrefix.trim(); 
 
-  // Rebuild proper PEM format
-  return `-----BEGIN ${type}-----\n${chunks.join('\n')}\n-----END ${type}-----`;
+    // Remove all headers, spaces, and existing line breaks
+    const cleanedKey = trimmedKey.replace(/-----(BEGIN|END) .*?-----|\s/g, '');
+
+    // Split key into 64 character lines
+    const chunks = [];
+    for (let i = 0; i < cleanedKey.length; i += 64) {
+        chunks.push(cleanedKey.substring(i, i + 64));
+    }
+
+    // Rebuild proper PEM format
+    return `-----BEGIN ${type}-----\n${chunks.join('\n')}\n-----END ${type}-----`;
 }

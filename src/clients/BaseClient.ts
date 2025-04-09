@@ -107,33 +107,13 @@ export class BaseClient {
       throw new Error('Base URL is required');
     }
 
-    // Get HTTPS enforcement mode (default to 'warn')
-    const httpsMode = 'httpsMode' in config ? config.httpsMode : 'warn';
+    const httpsMode = (config as SecureClientConfig).httpsMode ?? 'warn';
     const defaultExemptHosts: string[] = ['localhost', '127.0.0.1', '.local', '.test'];
-    const httpsExemptHosts: string[] = 'httpsExemptHosts' in config && Array.isArray(config.httpsExemptHosts) ?
-      config.httpsExemptHosts :
-      defaultExemptHosts;
+    const httpsExemptHosts: string[] = (config as SecureClientConfig).httpsExemptHosts ?? defaultExemptHosts;
 
-    // Check if URL is exempt from HTTPS enforcement
-    const isExemptFromHttps = (): boolean => {
-      try {
-        const url = new URL(config.baseURL);
-        return httpsExemptHosts.some((exemptHost: string) => {
-          if (exemptHost.startsWith('.')) {
-            return url.hostname.endsWith(exemptHost);
-          }
-          return url.hostname === exemptHost;
-        });
-      } catch {
-        return false;
-      }
-    };
-
-    // Enforce HTTPS based on mode and exemptions
-    if (httpsMode === 'strict' && !config.baseURL.startsWith('https://') && !isExemptFromHttps()) {
+    if (httpsMode === 'strict' && !config.baseURL.startsWith('https://') && !this.isExemptFromHttps(config.baseURL, httpsExemptHosts)) {
       throw new Error('HTTPS protocol is required for secure connections. Use httpsExemptHosts to allow specific hostnames or set httpsMode to "warn" or "none" for development.');
-    } else if (httpsMode === 'warn' && !config.baseURL.startsWith('https://') && !isExemptFromHttps()) {
-      // Using logger or custom error handling would be better than console.warn
+    } else if (httpsMode === 'warn' && !config.baseURL.startsWith('https://') && !this.isExemptFromHttps(config.baseURL, httpsExemptHosts)) {
       throw new Error('Using insecure HTTP connection. This is not recommended for production environments. Consider using HTTPS instead.');
     }
 
@@ -145,10 +125,10 @@ export class BaseClient {
       projectName: '',
       userId: ''
     };
+
     if (this.isSecureConfig(config)) {
       const { privateKey, apiKeyId, projectId, projectName, userId } = config;
 
-      // Validate all required secure config fields
       const missingFields = [
         ['privateKey', privateKey],
         ['apiKeyId', apiKeyId],
@@ -163,11 +143,10 @@ export class BaseClient {
       }
 
       this.authConfig = {
-        ...this.authConfig,
         privateKey,
         apiKeyId,
-        projectName,
         projectId,
+        projectName,
         userId
       };
     } else {
@@ -183,39 +162,67 @@ export class BaseClient {
     return 'privateKey' in config && 'apiKeyId' in config;
   }
 
+  
   /**
-   * Signs request data using RSA private key
+   * Checks if a given URL is exempt from HTTPS requirement
+   * @param baseURL The URL to check
+   * @param httpsExemptHosts Array of hostnames that are exempt from HTTPS requirement
+   * @returns true if the URL's hostname matches any exempt host, false otherwise
    * @private
-   * @param data - Data to sign
-   * @param privateKey - RSA private key in PEM format
-   * @returns Base64 encoded signature
-   * @throws {Error} If signing fails or inputs are invalid
+   */
+  private isExemptFromHttps(baseURL: string, httpsExemptHosts: string[]): boolean {
+    try {
+      const url = new URL(baseURL);
+      return httpsExemptHosts.some((exemptHost: string) => {
+        if (exemptHost.startsWith('.')) {
+          return url.hostname.endsWith(exemptHost);
+        }
+        return url.hostname === exemptHost;
+      });
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Signs data using RSA private key
+   * @param data The string data to be signed
+   * @param privateKey The RSA private key in PEM format or with sk_ prefix
+   * @returns Base64-encoded signature string
+   * @throws Error if data or private key is missing, or if signing fails
+   * @private
    */
   private signWithPrivateKey(data: string, privateKey: string): string {
     if (!data || !privateKey) {
       throw new Error('Data and private key are required for signing');
     }
-
     try {
-      const formattedKey = formatPEM(privateKey);
-      const signer = new JSEncrypt();
-      signer.setPrivateKey(formattedKey);
+      const privateKeyPem = formatPEM(privateKey);
 
-      CryptoJS.SHA256(data).toString(CryptoJS.enc.Hex);
+      if (!privateKeyPem.includes('-----BEGIN PRIVATE KEY-----') || !privateKeyPem.includes('-----END PRIVATE KEY-----')) {
+        throw new Error('Invalid private key format: missing BEGIN/END markers');
+      }
+
+      const signer = new JSEncrypt();
+      signer.setPrivateKey(privateKeyPem);
 
       const hashFunction = (input: string): string => {
         return CryptoJS.SHA256(input).toString(CryptoJS.enc.Hex);
       };
 
       const signature = signer.sign(data, hashFunction, 'sha256');
+
       if (!signature) {
-        throw new Error('Failed to generate signature');
+        throw new Error('Failed to generate signature - JSEncrypt returned null');
       }
 
       return signature;
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Unknown error during signing');
-      throw err;
+      const errorMessage = error instanceof Error
+        ? `Signature error: ${error.message}`
+        : 'Unknown error during signing';
+
+      throw new Error(errorMessage);
     }
   }
 
@@ -226,29 +233,26 @@ export class BaseClient {
    */
   public async init(): Promise<void> {
     const response = await this.request<{ token: string }>('GET', 'api/secure/csrf-token');
-    
-    // Check if response is successful and has data
+
     if (!response || !response.success) {
       throw new Error('Failed to fetch CSRF token');
     }
-    
-    // Check if data exists and has the expected structure
+
     if (!response.data) {
       throw new Error('Invalid CSRF token response: missing data');
     }
-    
-    // Try to access token from data, handling both object and direct value formats
+
     let token: string | undefined;
     if (typeof response.data === 'object' && response.data !== null) {
       token = (response.data as { token?: string }).token;
     } else if (typeof response.data === 'string') {
       token = response.data;
     }
-    
+
     if (!token) {
       throw new Error('Invalid CSRF token response: token missing from response data');
     }
-    
+
     this.csrfToken = token;
   }
 
@@ -275,29 +279,19 @@ export class BaseClient {
     }
     const url = new URL(`${path}/`, `${this.baseURL}/${this.authConfig.projectName}`);
 
-    // Process query filters if present
     if (queryFilters?.length) {
-      // Group filters by field name using type-safe reducer
       const filtersByField = queryFilters.reduce<Record<string, unknown[]>>((acc, filter) => {
-        // Ensure filter has required fields
         if (!filter?.field) {
           throw new Error('Invalid query filter - missing field');
         }
-
-        // Initialize array for field if needed
         acc[filter.field] = acc[filter.field] || [];
-        
-        // Add value, ensuring it's not undefined
         const value = filter.value ?? '';
         acc[filter.field].push(value);
-        
         return acc;
       }, {});
 
-      // Add grouped filters to URL params with proper encoding
       Object.entries(filtersByField).forEach(([field, values]) => {
         values.forEach(value => {
-          // Ensure proper encoding of special characters
           url.searchParams.append(
             encodeURIComponent(field),
             encodeURIComponent(String(value))
@@ -306,20 +300,7 @@ export class BaseClient {
       });
     }
 
-    const headers = this.buildHeaders();
-
-    if (options) {
-      const queryHeader: Record<string, unknown> = {};
-      if (options.populate) queryHeader['x-populate'] = options.populate;
-      if (typeof options.skip === 'number') queryHeader['x-skip'] = options.skip;
-      if (typeof options.limit === 'number') queryHeader['x-limit'] = options.limit;
-      if (options.query) queryHeader['x-query'] = options.query;
-      if (options.slice) queryHeader['x-slice'] = options.slice;
-
-      if (Object.keys(queryHeader).length > 0) {
-        headers['x-query'] = JSON.stringify(queryHeader);
-      }
-    }
+    const headers = this.buildHeaders(options);
 
     const requestOptions: RequestInit = {
       method,
@@ -338,7 +319,6 @@ export class BaseClient {
         };
       }
 
-      // Check for Authorization header
       const authHeader = response.headers.get('Authorization');
       if (authHeader) {
         this.jwToken = authHeader.replace('Bearer ', '');
@@ -346,7 +326,6 @@ export class BaseClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: response.statusText }));
-        // Format error response consistently
         throw {
           success: false,
           status: response.status,
@@ -367,12 +346,10 @@ export class BaseClient {
       return jsonResponse;
 
     } catch (error) {
-      // Check if it's a structured error we created
       if (error && typeof error === 'object' && 'success' in error) {
         throw error;
       }
 
-      // For network errors, missing responses, or other exceptions
       const standardError = {
         success: false,
         status: 500,
@@ -384,11 +361,17 @@ export class BaseClient {
   }
 
   /**
-   * Builds request headers with authentication
+   * Builds HTTP headers for API requests
+   * 
+   * Includes authentication headers (CSRF token, JWT token),
+   * API key authentication with RSA signature when secure config is provided,
+   * and query option headers for pagination, filtering, etc.
+   * 
+   * @param options Optional query parameters for filtering, pagination, and data selection
+   * @returns Object containing all required HTTP headers
    * @private
-   * @returns Headers object with auth credentials
    */
-  private buildHeaders(): Record<string, string> {
+  private buildHeaders(options?: QueryOptions): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
@@ -411,6 +394,19 @@ export class BaseClient {
       headers['x-signature'] = signature;
       headers['x-timestamp'] = timestamp;
       headers['x-api-key'] = apiKey;
+    }
+
+    if (options) {
+      const queryHeader: Record<string, unknown> = {};
+      if (options.populate) queryHeader['x-populate'] = options.populate;
+      if (typeof options.skip === 'number') queryHeader['x-skip'] = options.skip;
+      if (typeof options.limit === 'number') queryHeader['x-limit'] = options.limit;
+      if (options.query) queryHeader['x-query'] = options.query;
+      if (options.slice) queryHeader['x-slice'] = options.slice;
+
+      if (Object.keys(queryHeader).length > 0) {
+        headers['x-query'] = JSON.stringify(queryHeader);
+      }
     }
 
     return headers;
