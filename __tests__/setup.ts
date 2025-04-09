@@ -5,6 +5,11 @@ global.window = {} as any;
 import fetchMock from 'jest-fetch-mock';
 fetchMock.enableMocks();
 
+// Mock document object for cookie handling
+global.document = {
+  cookie: ''
+} as any;
+
 // Mock fetch API with default implementation
 // This can be overridden in specific tests
 global.fetch = jest.fn().mockImplementation((url, options) => {
@@ -144,7 +149,6 @@ jest.mock('../src/utils/formatPem', () => ({
     return `-----BEGIN ${type}-----\nmocked-formatted-key-content\n-----END ${type}-----`;
   })
 }));
-
 // Make CryptoJS available globally for any tests that need direct access
 // @ts-ignore - Adding CryptoJS to global for testing purposes
 global.CryptoJS = mockCryptoJS;

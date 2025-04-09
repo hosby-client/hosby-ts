@@ -35,6 +35,14 @@ describe('Authentication Security Tests', () => {
 
     describe('CSRF Token Handling', () => {
         test('should fetch CSRF token during initialization', async () => {
+            // Mock document object to prevent error in non-browser environment
+            Object.defineProperty(global, 'document', {
+                value: {
+                    cookie: '',
+                },
+                writable: true
+            });
+            
             const client = new HosbyClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: 'test-private-key',
@@ -59,8 +67,22 @@ describe('Authentication Security Tests', () => {
                     }
                 })
             );
+            
+            // Clean up the mock
+            if (global.document) {
+                delete (global as any).document;
+            }
         });
         test('should include CSRF token in subsequent requests', async () => {
+            // Mock document object to prevent error in non-browser environment
+            Object.defineProperty(global, 'document', {
+                value: {
+                    cookie: '',
+                },
+                writable: true,
+                configurable: true
+            });
+            
             const client = new HosbyClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: 'test-private-key',
@@ -89,6 +111,11 @@ describe('Authentication Security Tests', () => {
             // Check that CSRF token is included
             const requestHeaders = (global.fetch as jest.Mock).mock.calls[0][1].headers;
             expect(requestHeaders['x-csrf-token']).toBe('mock-csrf-token');
+            
+            // Clean up the mock
+            if (global.document) {
+                delete (global as any).document;
+            }
         });
 
         test('should fail if CSRF token fetch fails', async () => {
@@ -116,6 +143,11 @@ describe('Authentication Security Tests', () => {
 
     describe('API Key Authentication', () => {
         test('should include API key in Authorization header', async () => {
+            // Create a mock document object before the test
+            if (!global.document) {
+                global.document = { cookie: '' } as any;
+            }
+            
             const client = new BaseClient({
                 baseURL: 'https://api.hosby.com',
                 apiKey: 'test-api-key',
@@ -144,11 +176,21 @@ describe('Authentication Security Tests', () => {
             const requestConfig = (global.fetch as jest.Mock).mock.calls[0][1];
             const headers = requestConfig.headers as Record<string, string>;
             expect(headers.Authorization).toBe('Bearer mock-csrf-token');
+            
+            // Clean up the mock if needed
+            if (global.document) {
+                delete (global as any).document;
+            }
         });
     });
 
     describe('RSA Authentication Headers', () => {
         test('should include signature, timestamp and API key in headers', async () => {
+            // Set up document object for the test
+            if (!global.document) {
+                global.document = { cookie: '' } as any;
+            }
+            
             const config: SecureClientConfig = {
                 baseURL: 'https://api.hosby.com',
                 privateKey: 'test-private-key',
@@ -186,6 +228,10 @@ describe('Authentication Security Tests', () => {
             } finally {
                 // Restore original Date.now
                 Date.now = originalNow;
+                // Clean up document if we created it
+                if (global.document && !('originalDocument' in global)) {
+                    delete (global as any).document;
+                }
             }
         });
     });
@@ -282,6 +328,19 @@ describe('Authentication Security Tests', () => {
                 projectName: 'test-project'
             });
 
+            // Create a proper document mock with cookie property
+            Object.defineProperty(global, 'document', {
+                value: {
+                    cookie: ''
+                },
+                writable: true
+            });
+            
+            // Mock setCookie method on the BaseClient prototype
+            jest.spyOn(BaseClient.prototype as any, 'setCookie').mockImplementation(() => {
+                // Do nothing to avoid the "not in browser environment" error
+            });
+
             await client.init();
 
             // Reset fetch mock
@@ -296,20 +355,24 @@ describe('Authentication Security Tests', () => {
             });
         });
 
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
         test('should validate table parameters', async () => {
             // Test with missing table name
             await expect(client.find('', [])).rejects.toThrow('Table name is required');
 
-            // // Test with undefined table name 
+            // Test with undefined table name 
             await expect(client.find(undefined as any, [])).rejects.toThrow('Table name is required');
 
-            // // Test with null table name
+            // Test with null table name
             await expect(client.find(null as any, [])).rejects.toThrow('Table name is required');
 
-            // // Test with whitespace table name
+            // Test with whitespace table name
             // await expect(client.find('   ', [])).rejects.toThrow('Table name is required');
 
-            // // Test with non-string table name
+            // Test with non-string table name
             await expect(client.find(123 as any, [])).rejects.toThrow('Table name is required');
 
             // Valid table name should resolve successfully
@@ -339,6 +402,12 @@ describe('Authentication Security Tests', () => {
 
     describe('Timeout and Retry Settings', () => {
         test('should honor timeout configuration', async () => {
+            // Set up document mock properly
+            const originalDocument = global.document;
+            global.document = {
+                cookie: ''
+            } as any;
+            
             const client = new HosbyClient({
                 baseURL: 'https://api.hosby.com',
                 privateKey: 'test-private-key', 
@@ -380,7 +449,9 @@ describe('Authentication Security Tests', () => {
                     })
                 })
             );
-
+            
+            // Restore the original document
+            global.document = originalDocument;
         }, 3000); // Only need 3s for test
     });
 });

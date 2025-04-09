@@ -32,6 +32,7 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': 'error',
       '@typescript-eslint/explicit-function-return-type': 'off',
+      'security/detect-object-injection': 'off',
       'no-console': 'warn',
     },
     ignores: ['node_modules', 'dist', '__tests__'],

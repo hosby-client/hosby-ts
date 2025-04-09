@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "prepublishOnly": "npm prune --production && npm run build",
+    "prepublishOnly": "npm run clean && npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint \"src/**/*.ts\"",

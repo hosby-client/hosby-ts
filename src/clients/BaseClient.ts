@@ -70,6 +70,13 @@ export interface SecureClientConfig extends BaseClientConfig {
    * ```
    */
   secure?: boolean;
+
+  /**
+   * Name of the CSRF cookie.
+   * This should match the name used by your server.
+   * Defaults to 'hosbyapiservices-X-CSRF-Token' if not specified.
+   */
+  csrfCookieName?: string;
 }
 
 /**
@@ -88,6 +95,7 @@ export interface SecureClientConfig extends BaseClientConfig {
 export class BaseClient {
   private readonly baseURL: string;
   private csrfToken?: string;
+  private readonly csrfCookieName?: string;
   private jwToken?: string;
   private readonly authConfig: {
     privateKey: string;
@@ -118,6 +126,7 @@ export class BaseClient {
     }
 
     this.baseURL = config.baseURL;
+    this.csrfCookieName = (config as SecureClientConfig).csrfCookieName || 'hosbyapiservices-X-CSRF-Token';
     this.authConfig = {
       privateKey: '',
       apiKeyId: '',
@@ -162,6 +171,52 @@ export class BaseClient {
     return 'privateKey' in config && 'apiKeyId' in config;
   }
 
+  /**
+ * Sets a cookie with the specified name and value
+ * @param name Cookie name
+ * @param value Cookie value
+ * @param days Optional expiration in days (defaults to 7)
+ * @private
+ */
+  private setCookie(name: string, value: string, days = 7): void {
+    try {
+      const expires = new Date();
+      expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+      // Check if we're in a browser environment before trying to set a cookie
+      if (typeof document !== 'undefined') {
+        document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+      } else {
+        // In Node.js or other non-browser environments, cookies can't be set directly
+        // Store in memory or log for debugging
+        throw new Error(`Cookie ${name} would be set to ${value} (not in browser environment)`);
+      }
+    } catch (error) {
+      throw new Error(`Failed to set cookie ${name}:` + error);
+    }
+  }
+
+  /**
+   * Gets a cookie by name
+   * @param name Cookie name
+   * @returns Cookie value or undefined if not found
+   * @private
+   */
+  private getCookie(name: string): string | undefined {
+    try {
+      const nameEQ = name + "=";
+      // Check if we're in a browser environment before accessing document
+      const ca = typeof document !== 'undefined' ? document.cookie.split(';') : [];
+      for (let i = 0; i < ca.length; i++) {
+        const cookie = ca[i].trim();
+        if (cookie.indexOf(nameEQ) === 0) {
+          return cookie.substring(nameEQ.length);
+        }
+      }
+      return undefined;
+    } catch (error) {
+      throw new Error(`Failed to get cookie ${name}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 
   /**
    * Checks if a given URL is exempt from HTTPS requirement
@@ -254,6 +309,11 @@ export class BaseClient {
     }
 
     this.csrfToken = token;
+    if (this.csrfCookieName) {
+      this.setCookie(this.csrfCookieName, token);
+    } else {
+      throw new Error('No CSRF cookie name configured. Token will only be stored.');
+    }
   }
 
   /**
@@ -388,8 +448,17 @@ export class BaseClient {
       'Accept': 'application/json'
     };
 
-    if (this.csrfToken) {
-      headers['x-csrf-token'] = this.csrfToken;
+    const cookieToken = this.csrfCookieName ? this.getCookie(this.csrfCookieName) : undefined;
+
+    const csrfToken = this.csrfToken || cookieToken;
+
+    if (csrfToken) {
+      headers['x-csrf-token'] = csrfToken as string;
+      if (!cookieToken || cookieToken !== csrfToken) {
+        if (this.csrfCookieName) {
+          this.setCookie(this.csrfCookieName, csrfToken as string);
+        }
+      }
     }
 
     if (this.jwToken) {
