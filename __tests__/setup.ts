@@ -10,7 +10,7 @@ fetchMock.enableMocks();
 global.fetch = jest.fn().mockImplementation((url, options) => {
   // Always log request headers for debugging
   console.log('Request Headers:', options?.headers);
-  
+
   return Promise.resolve({
     ok: true,
     status: 200,
@@ -35,7 +35,7 @@ global.fetch = jest.fn().mockImplementation((url, options) => {
 
 // Mock FileReader if needed
 class MockFileReader {
-  onload: () => void = () => {};
+  onload: () => void = () => { };
   readAsDataURL(blob: Blob) {
     this.onload();
   }
@@ -109,13 +109,23 @@ const mockCryptoJS = {
 
 // Mock JSEncrypt
 jest.mock('jsencrypt', () => {
+  const mockSetPrivateKey = jest.fn();
+  const mockSign = jest.fn().mockImplementation((data, hashFunction, algorithm) => {
+    // Ensure the mock properly handles the signature function with all parameters
+    // This matches the usage in BaseClient.signWithPrivateKey
+    if (typeof hashFunction === 'function') {
+      hashFunction(data); // Call the hash function to ensure it's properly mocked
+    }
+    return 'mocked-signature';
+  });
+
   return {
     __esModule: true,
     default: jest.fn().mockImplementation(() => {
       return {
-        setPrivateKey: jest.fn(),
+        setPrivateKey: mockSetPrivateKey,
         setPublicKey: jest.fn(),
-        sign: jest.fn().mockReturnValue('mocked-signature'),
+        sign: mockSign,
         verify: jest.fn().mockReturnValue(true),
         encrypt: jest.fn().mockReturnValue('mocked-encrypted-data'),
         decrypt: jest.fn().mockReturnValue('mocked-decrypted-data')
@@ -126,6 +136,14 @@ jest.mock('jsencrypt', () => {
 
 // Apply CryptoJS mock
 jest.mock('crypto-js', () => mockCryptoJS);
+
+// Mock formatPEM utility to ensure it works with the tests
+jest.mock('../src/utils/formatPem', () => ({
+  formatPEM: jest.fn().mockImplementation((keyData, type = 'PRIVATE KEY') => {
+    // Simple implementation that mimics the real formatPEM function
+    return `-----BEGIN ${type}-----\nmocked-formatted-key-content\n-----END ${type}-----`;
+  })
+}));
 
 // Make CryptoJS available globally for any tests that need direct access
 // @ts-ignore - Adding CryptoJS to global for testing purposes

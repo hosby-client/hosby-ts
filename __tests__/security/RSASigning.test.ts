@@ -4,7 +4,6 @@ global.window = {} as any;
 
 import { BaseClient, SecureClientConfig } from '../../src/clients/BaseClient';
 import { formatPEM } from '../../src/utils/formatPem';
-import CryptoJS from 'crypto-js';
 
 // Mock JSEncrypt
 jest.mock('jsencrypt', () => {
@@ -89,7 +88,7 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
 
     describe('PEM Formatting', () => {
         test('should format private keys with proper PEM headers', () => {
-            const rawKey = 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCxWsZSZXUndUW8qwlgJu9HnUxdWqCHxRXanZ7B8BznKPZqwP54vcjGP53EkO5FJY9aVxQN+GnQHeY51Uz9MCB8rMBxBH9zbaHd6l6CUQIleMUSPZl8QG/cKSVAzPNFuQ+VIJYDdHMdX+IKbTm+THZXTlGGmZZKpwfyc/WQJvn3mZD3CGJxfGJ8kXGnrZUdLhsGIWVtk8AFeo9aGYxRZ6mTcnLAKgJzSwS3wUEFI1P7EFvDd+CzL06SBfFbOVVxLvyuL6FsNxDHMKvAzXXL6ZkZ8WH72C+KZ9rJrQb5H+mUFk4MKX1ed0QdC+HqyQC/NkdXPQo5p9JwM0nTTnnZcjK5AgMBAAECggEAIy2XgHuQ6SrNX1YKfT+VyVGpgGKPHdfVq7EK0mJo8+eT7bQU0wXMtvBWQ5PsErVZ+9f+JmCvZXzs9ujbGpFn/CB2v8H3T0gXiK32jIm5/Z6OnMqKZhJAxpK8DK1qrI6cWpygqu2N22XGbl5WSWK4kOXUCkSlAfTpWRcffR5XsXB5pHpPxTQjwNdviCtGRvwqBm2rGU6qFYyK9ijuxaV3QqHy4e8Qkf/OsH/0UcVz9X5fTuEq1I+mNVMWHQCVJ66xBYXfcg42c6WJWbELKsrWZvJPPUcL+XNvbXYOCdKUMrwmKE9TzRpvAceM5FheXiiP2QZQEDTk9moH/Z+X7kFhAQKBgQDnPfTm43HGZZqJV1MvZfiIYO1+x8C9sUCUOUZbzSUEShUPABRclCdh4FmN+C857WMeAYnkO5rQ6BqNXyXV3IIxjS/LqcixfzJSJzGbjHW8/y2xZR0UuDXUudZQQJLoVS/zZP5qW5lKXMZPDdUHOXn65UpMJhhGMASBJ3N5YiQRqQKBgQDEYk9qbgkvQgUGEARwKmzsgHrPYYyfx8hF3/QWsQqyBu+7qS2kkPPnBOzY3pV8DIhQn1zOQaerJgxvg0431RfVYLB0YLbKw7Jplp4ybwcDb4XCQjUaKxTIrGBQtBEBlnA21PsJswe3yvDYPvlnRXLcJbAcF0iASveUB0FYDsNX4QKBgQDBNfES5P9oPE9KLZMlpVDWeNoEQTWjGmSSuKgxkPjrsKK+EF1ecFc97FygGYHdIQS14MGmIFRJn0QnSs46Yf1brI+KRJEGlZzJJIhUMEprz/yrZrVxO9yCgUkQwCeQOAJtX5ysFN83Ze9cp8YQvPWPcKMJLjIvUZq8rJ6zuWcbGQKBgAMp5+Kj8qm8zcgOjKccMVu2Oy5ZMKpXvTBXcXi1aCW8XsQJoQFUJGVTsJdcjUECpK5F1yQNQT47KN5znc0NJ5Xv9dHZxLQJqNrUWvnLKXeW6/gbgwf9KcUI5xL1L5lcum5vtZpKkxSml8XlgVVnlgZ0oSzm5MCf9iGkuZ1Z/lxhAoGANwpxaH4HUT8wZOLArCGk3ZFHQBKdDaG3jTmF2mbaQJYUgSZ3hV7UxOA/nCwSKYQXrQ06QKF8z8a14XaLPl7vJYzKuI8/rJP8qnkqNi5yKQhiVgVuZW/nG7JLMYwEHZS0uLIAcSSYNvIuMMvnkHO6CQYjiZ2/k2RzPO/MJmMWB1A=';
+            const rawKey = 'sk_MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCxWsZSZXUndUW8qwlgJu9HnUxdWqCHxRXanZ7B8BznKPZqwP54vcjGP53EkO5FJY9aVxQN+GnQHeY51Uz9MCB8rMBxBH9zbaHd6l6CUQIleMUSPZl8QG/cKSVAzPNFuQ+VIJYDdHMdX+IKbTm+THZXTlGGmZZKpwfyc/WQJvn3mZD3CGJxfGJ8kXGnrZUdLhsGIWVtk8AFeo9aGYxRZ6mTcnLAKgJzSwS3wUEFI1P7EFvDd+CzL06SBfFbOVVxLvyuL6FsNxDHMKvAzXXL6ZkZ8WH72C+KZ9rJrQb5H+mUFk4MKX1ed0QdC+HqyQC/NkdXPQo5p9JwM0nTTnnZcjK5AgMBAAECggEAIy2XgHuQ6SrNX1YKfT+VyVGpgGKPHdfVq7EK0mJo8+eT7bQU0wXMtvBWQ5PsErVZ+9f+JmCvZXzs9ujbGpFn/CB2v8H3T0gXiK32jIm5/Z6OnMqKZhJAxpK8DK1qrI6cWpygqu2N22XGbl5WSWK4kOXUCkSlAfTpWRcffR5XsXB5pHpPxTQjwNdviCtGRvwqBm2rGU6qFYyK9ijuxaV3QqHy4e8Qkf/OsH/0UcVz9X5fTuEq1I+mNVMWHQCVJ66xBYXfcg42c6WJWbELKsrWZvJPPUcL+XNvbXYOCdKUMrwmKE9TzRpvAceM5FheXiiP2QZQEDTk9moH/Z+X7kFhAQKBgQDnPfTm43HGZZqJV1MvZfiIYO1+x8C9sUCUOUZbzSUEShUPABRclCdh4FmN+C857WMeAYnkO5rQ6BqNXyXV3IIxjS/LqcixfzJSJzGbjHW8/y2xZR0UuDXUudZQQJLoVS/zZP5qW5lKXMZPDdUHOXn65UpMJhhGMASBJ3N5YiQRqQKBgQDEYk9qbgkvQgUGEARwKmzsgHrPYYyfx8hF3/QWsQqyBu+7qS2kkPPnBOzY3pV8DIhQn1zOQaerJgxvg0431RfVYLB0YLbKw7Jplp4ybwcDb4XCQjUaKxTIrGBQtBEBlnA21PsJswe3yvDYPvlnRXLcJbAcF0iASveUB0FYDsNX4QKBgQDBNfES5P9oPE9KLZMlpVDWeNoEQTWjGmSSuKgxkPjrsKK+EF1ecFc97FygGYHdIQS14MGmIFRJn0QnSs46Yf1brI+KRJEGlZzJJIhUMEprz/yrZrVxO9yCgUkQwCeQOAJtX5ysFN83Ze9cp8YQvPWPcKMJLjIvUZq8rJ6zuWcbGQKBgAMp5+Kj8qm8zcgOjKccMVu2Oy5ZMKpXvTBXcXi1aCW8XsQJoQFUJGVTsJdcjUECpK5F1yQNQT47KN5znc0NJ5Xv9dHZxLQJqNrUWvnLKXeW6/gbgwf9KcUI5xL1L5lcum5vtZpKkxSml8XlgVVnlgZ0oSzm5MCf9iGkuZ1Z/lxhAoGANwpxaH4HUT8wZOLArCGk3ZFHQBKdDaG3jTmF2mbaQJYUgSZ3hV7UxOA/nCwSKYQXrQ06QKF8z8a14XaLPl7vJYzKuI8/rJP8qnkqNi5yKQhiVgVuZW/nG7JLMYwEHZS0uLIAcSSYNvIuMMvnkHO6CQYjiZ2/k2RzPO/MJmMWB1A=';
 
             const formattedKey = formatPEM(rawKey);
 
@@ -121,7 +120,7 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
         });
 
         test('should handle different key types', () => {
-            const publicKey = 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugdUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQsHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5Do2kQ+X5xK9cipRgEKwIDAQAB';
+            const publicKey = 'pk_MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugdUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQsHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5Do2kQ+X5xK9cipRgEKwIDAQAB';
 
             const formattedPublicKey = formatPEM(publicKey, 'PUBLIC KEY');
 
@@ -133,42 +132,42 @@ CQYjiZ2/k2RzPO/MJmMWB1A=
 
     describe('RSA Signature Generation', () => {
         test('should sign data using private key', async () => {
-            // Mock CryptoJS.SHA256 
-            const mockSHA256 = jest.fn().mockReturnValue({
-                toString: jest.fn().mockReturnValue('hashed-data')
+            // Use the JSEncrypt mock that's already set up in setup.ts
+            const JSEncrypt = require('jsencrypt').default;
+            
+            // Reset mock counts before test
+            JSEncrypt.mockClear();
+            
+            // Access the private signWithPrivateKey method for testing
+            const client = new BaseClient({
+                baseURL: 'https://api.hosby.com',
+                privateKey: testPrivateKey,
+                projectId: 'test-project-id',
+                userId: 'test-user-id',
+                apiKeyId: 'test-api-key-id',
+                projectName: 'testprojectname'
             });
 
-            // Save original SHA256 implementation and mock it
-            const originalSHA256 = CryptoJS.SHA256;
-            Object.defineProperty(CryptoJS, 'SHA256', { value: mockSHA256, writable: true });
+            // Access the private method for testing
+            const signWithPrivateKey = (client as any)['signWithPrivateKey'].bind(client);
 
-            try {
-                // Access the private signWithPrivateKey method for testing
-                const client = new BaseClient({
-                    baseURL: 'https://api.hosby.com',
-                    privateKey: testPrivateKey,
-                    projectId: 'test-project-id',
-                    userId: 'test-user-id',
-                    apiKeyId: 'test-api-key-id',
-                    projectName: 'testprojectname'
-                });
-
-                // Access the private method for testing
-                const signWithPrivateKey = (client as any)['signWithPrivateKey'].bind(client);
-
-                // Test signing
-                const data = 'test-data-to-sign';
-                const signature = signWithPrivateKey(data, testPrivateKey);
-
-                // Since we're using mocks, we can't verify the actual signature
-                // But we can verify the right calls were made
-                expect(signature).toBe('mocked-signature');
-                expect(mockSHA256).toHaveBeenCalledWith('test-data-to-sign');
-
-            } finally {
-                // Restore original SHA256
-                Object.defineProperty(CryptoJS, 'SHA256', { value: originalSHA256, writable: true });
-            }
+            // Test signing
+            const data = 'test-data-to-sign';
+            const signature = signWithPrivateKey(data, testPrivateKey);
+            // Get the mock instance that was created
+            const mockInstance = JSEncrypt.mock.results[0].value;
+            
+            // Verify the mocked signature
+            expect(signature).toBe('mocked-signature');
+            
+            // Verify that JSEncrypt constructor was called
+            expect(JSEncrypt).toHaveBeenCalled();
+            
+            // Verify that setPrivateKey was called with the formatted PEM key
+            expect(mockInstance.setPrivateKey).toHaveBeenCalled();
+            expect(mockInstance.setPrivateKey.mock.calls.length).toBeGreaterThan(0);
+            expect(mockInstance.setPrivateKey.mock.calls[0][0]).toContain('-----BEGIN PRIVATE KEY-----');
+            expect(mockInstance.sign).toHaveBeenCalledWith('test-data-to-sign', expect.any(Function), 'sha256');
         });
         test('should throw error when signing data without private key', async () => {
             const client = new BaseClient({
