@@ -15,7 +15,7 @@
     }
   },
   "scripts": {
-    "build": "tsup",
+    "build": "npx tsup",
     "prepublishOnly": "npm prune --production && npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
