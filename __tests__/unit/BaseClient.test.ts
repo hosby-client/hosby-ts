@@ -84,6 +84,13 @@ describe('BaseClient', () => {
                 baseURL: 'https://api.hosby.com',
                 httpsMode: 'strict'
             };
+            
+            // Mock document.cookie to prevent error in non-browser environment
+            const originalDocument = global.document;
+            global.document = {
+                cookie: ''
+            } as any;
+            
             const client = new BaseClient(secureConfig);
 
             // Mock signature generation
@@ -106,6 +113,9 @@ describe('BaseClient', () => {
                     'mode': 'cors',
                 })
             );
+            
+            // Restore the original document
+            global.document = originalDocument;
         });
 
         test('should allow HTTP for exempt hosts when fetching CSRF token', async () => {

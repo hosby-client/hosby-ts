@@ -9,6 +9,7 @@ export default defineConfig({
   clean: true,
   minify: true,
   treeshake: true,
+  noExternal: [],
   external: ['crypto-js', 'jsencrypt'],
   outDir: 'dist'
 });

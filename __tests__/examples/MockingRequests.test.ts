@@ -13,7 +13,7 @@ jest.mock('jsencrypt', () => {
 global.window = {} as any;
 
 import { HosbyClient } from '../../src';
-import { ApiResponse, QueryFilter } from '../../src/types';
+import { QueryFilter } from '../../src/types';
 
 /**
  * This file demonstrates how to mock API requests when using the Hosby Client.
@@ -694,9 +694,9 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
                     const url = new URL(urlString);
                     const emailParam = url.searchParams.get('email');
                     const decodedEmail = emailParam ? decodeURIComponent(emailParam) : null;
- 
+
                     // Extract email from query filters
-                    const queryFilters = [{ field: 'email', value: decodedEmail}];
+                    const queryFilters = [{ field: 'email', value: decodedEmail }];
                     const emailFilter = queryFilters.find((f: QueryFilter) => f.field === 'email');
 
                     if (emailFilter && emailFilter.value === 'valid@example.com') {
@@ -866,7 +866,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             const successResult = await performLogin('valid@example.com', 'hashed-password');
             expect(successResult.success).toBe(true);
             expect(successResult.userId).toBe('user-123');
-            
+
             // Verify the fetch was called with the right parameters
             expect(global.fetch).toHaveBeenCalled();
 
@@ -880,5 +880,50 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             expect(failedResult2.success).toBe(false); // Fixed: Changed from false to true
             expect(failedResult2.message).toBe('An error occurred during login');
         });
+    });
+
+    test('CSRF token update and synchronization', async () => {
+        // Mock the initial CSRF token fetch
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: {
+                get: jest.fn().mockReturnValue('initial-mock-csrf-token')
+            },
+            json: async () => ({ success: true, data: { token: 'initial-mock-csrf-token' } }),
+            status: 200
+        });
+
+        const client = new HosbyClient({
+            baseURL: 'https://api.hosby.com',
+            privateKey: 'test-private-key',
+            projectId: 'test-project-id',
+            userId: 'test-user-id',
+            apiKeyId: 'test-api-key-id',
+            projectName: 'testproject'
+        });
+
+        await client.init();
+ 
+
+        // Verify the cookie value for CSRF token
+        const initialCookieValue = (global.document.cookie as string).split('; ').find(row => row.startsWith('hosbyapiservices-X-CSRF-Token='));
+        expect(initialCookieValue).toContain('hosbyapiservices-X-CSRF-Token=initial-mock-csrf-token');
+
+        // Mock a new CSRF token fetch
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: {
+                get: jest.fn().mockReturnValue('new-mock-csrf-token')
+            },
+            json: async () => ({ success: true, data: { token: 'new-mock-csrf-token' } }),
+            status: 200
+        });
+
+        // Simulate a request to update the CSRF token
+        await client.init(); // Re-initialize to fetch the new CSRF token
+
+        // Verify that the CSRF token has been updated
+        const updatedCookieValue = (global.document.cookie as string).split('; ').find(row => row.startsWith('hosbyapiservices-X-CSRF-Token='));
+        expect(updatedCookieValue).toContain('hosbyapiservices-X-CSRF-Token=new-mock-csrf-token');
     });
 });
