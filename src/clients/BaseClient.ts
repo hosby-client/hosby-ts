@@ -77,6 +77,14 @@ export interface SecureClientConfig extends BaseClientConfig {
    * Defaults to 'hosbyapiservices-X-CSRF-Token' if not specified.
    */
   csrfCookieName?: string;
+
+  /**
+* Whether to use same CSRF token strategy
+* When true, the library will try to maintain the same token
+* rather than updating from response headers
+* Defaults to false
+*/
+  useSameToken?: boolean;
 }
 
 /**
@@ -94,8 +102,9 @@ export interface SecureClientConfig extends BaseClientConfig {
  */
 export class BaseClient {
   private readonly baseURL: string;
-  private csrfToken?: string;
+  protected csrfToken?: string;
   private readonly csrfCookieName?: string;
+  private readonly useSameToken?: boolean;
   private jwToken?: string;
   private readonly authConfig: {
     privateKey: string;
@@ -104,6 +113,7 @@ export class BaseClient {
     projectName: string;
     userId: string;
   };
+  private readonly isNode: boolean;
 
   /**
    * Creates a new BaseClient instance
@@ -114,6 +124,10 @@ export class BaseClient {
     if (!config?.baseURL) {
       throw new Error('Base URL is required');
     }
+
+    // Detect environment
+    this.isNode = typeof window === 'undefined' || typeof document === 'undefined';
+    this.useSameToken = (config as SecureClientConfig).useSameToken ?? true;
 
     const httpsMode = (config as SecureClientConfig).httpsMode ?? 'warn';
     const defaultExemptHosts: string[] = ['localhost', '127.0.0.1', '.local', '.test'];
@@ -282,11 +296,70 @@ export class BaseClient {
   }
 
   /**
+ * Updates CSRF token and synchronizes between header and cookie
+ * @param token The new CSRF token value
+ * @private
+ */
+  private updateCSRFToken(token: string): void {
+    if (!token) return;
+
+    // Update in-memory token
+    this.csrfToken = token;
+
+    // Update cookie in browser environment
+    if (!this.isNode) {
+      this.setCookie(this.csrfCookieName as string, token);
+    } else {
+      console.log(`CSRF token updated (Node.js): ${token}`);
+    }
+  }
+
+  /**
+* Synchronizes CSRF token between memory and cookie in browser environment
+* @private
+*/
+  private syncCSRFToken(): void {
+    if (this.isNode) return;
+
+    const cookieToken = this.getCookie(this.csrfCookieName as string);
+    const cookieName = this.csrfCookieName as string;
+
+    if (!this.csrfToken && cookieToken) {
+      // Cookie exists but memory token doesn't - use cookie value
+      this.csrfToken = cookieToken;
+    } else if (this.csrfToken) {
+      // Memory token exists - ensure cookie matches
+      if (!cookieToken || this.csrfToken !== cookieToken) {
+        this.setCookie(cookieName, this.csrfToken);
+        const action = !cookieToken ? 'Set' : 'Synchronized mismatched';
+      }
+    }
+  }
+
+  /**
    * Initializes the client by fetching a CSRF token
    * @throws {Error} If token fetch fails
    * @public
    */
   public async init(): Promise<void> {
+    if (this.isNode && this.csrfToken) {
+      return;
+    }
+
+    // In browser environment, check if we already have a token in cookie
+    if (!this.isNode) {
+      // In browser environment, check if we already have a token in cookie
+      const cookieToken = this.getCookie(this.csrfCookieName as string);
+
+      // If there's a cookie token, set it to the csrfToken
+      if (cookieToken) {
+        this.csrfToken = cookieToken;
+      } else {
+        // If no token is found, we can log or handle the absence of a token
+        console.warn('No CSRF token found in cookies.');
+      }
+    }
+
     const response = await this.request<{ token: string }>('GET', 'api/secure/csrf-token');
 
     if (!response || !response.success) {
@@ -336,6 +409,11 @@ export class BaseClient {
   ): Promise<ApiResponse<T>> {
     if (!method || !path) {
       throw new Error('Method and path are required');
+    }
+
+    // Sync CSRF token before each request in browser environments
+    if (!this.isNode) {
+      this.syncCSRFToken();
     }
 
     const url = new URL(
@@ -395,6 +473,13 @@ export class BaseClient {
         this.jwToken = authHeader.replace('Bearer ', '');
       }
 
+      if (!this.useSameToken) {
+        const newCsrfToken = response.headers.get('X-CSRF-Token') || response.headers.get('x-csrf-token');
+        if (newCsrfToken && newCsrfToken !== this.csrfToken) {
+          this.updateCSRFToken(newCsrfToken);
+        }
+      }
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: response.statusText }));
         throw {
@@ -448,15 +533,14 @@ export class BaseClient {
       'Accept': 'application/json'
     };
 
-    const cookieToken = this.csrfCookieName ? this.getCookie(this.csrfCookieName) : undefined;
+    if (this.csrfToken) {
+      headers['x-csrf-token'] = this.csrfToken;
 
-    const csrfToken = this.csrfToken || cookieToken;
-
-    if (csrfToken) {
-      headers['x-csrf-token'] = csrfToken as string;
-      if (!cookieToken || cookieToken !== csrfToken) {
-        if (this.csrfCookieName) {
-          this.setCookie(this.csrfCookieName, csrfToken as string);
+      // Synchronize cookie with in-memory token in browser environments
+      if (!this.isNode && this.csrfCookieName) {
+        const cookieToken = this.getCookie(this.csrfCookieName);
+        if (cookieToken !== this.csrfToken) {
+          this.setCookie(this.csrfCookieName, this.csrfToken);
         }
       }
     }

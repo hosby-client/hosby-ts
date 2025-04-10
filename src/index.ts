@@ -1276,8 +1276,6 @@ export function createClient(config: BaseClientConfig | SecureClientConfig): Hos
   return new HosbyClient(config);
 }
 
-
-// Optionnel mais utile pour les utilisateurs avancés
 export { BaseClient, SecureClientConfig } from './clients/BaseClient';
 export { HosbyClient as CrudClient } from './clients/crud';
 export type { ApiResponse, BaseClientConfig, QueryFilter, QueryOptions } from './types';
