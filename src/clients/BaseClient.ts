@@ -310,7 +310,7 @@ export class BaseClient {
     if (!this.isNode) {
       this.setCookie(this.csrfCookieName as string, token);
     } else {
-      console.log(`CSRF token updated (Node.js): ${token}`);
+      console.warn(`CSRF token updated (Node.js): ${token}`);
     }
   }
 
@@ -332,6 +332,7 @@ export class BaseClient {
       if (!cookieToken || this.csrfToken !== cookieToken) {
         this.setCookie(cookieName, this.csrfToken);
         const action = !cookieToken ? 'Set' : 'Synchronized mismatched';
+        console.warn(`CSRF token ${action} (Node.js): ${this.csrfToken}`);
       }
     }
   }
