@@ -110,7 +110,7 @@ describe('Authentication Security Tests', () => {
 
             // Check that CSRF token is included
             const requestHeaders = (global.fetch as jest.Mock).mock.calls[0][1].headers;
-            expect(requestHeaders['x-csrf-token']).toBe('mock-csrf-token');
+            expect(requestHeaders['X-CSRF-Token']).toBe('mock-csrf-token');
             
             // Clean up the mock
             if (global.document) {
@@ -445,7 +445,7 @@ describe('Authentication Security Tests', () => {
                     method: 'GET',
                     headers: expect.objectContaining({
                         'Content-Type': 'application/json',
-                        'x-csrf-token': 'mock-csrf-token'
+                        'X-CSRF-Token': 'mock-csrf-token'
                     })
                 })
             );

@@ -142,7 +142,7 @@ describe('CRUD Operations Integration', () => {
             'x-api-key': 'mock-api-key-id_mock-project-id_mock-user-id',
             'x-signature': 'mocked-signature',
             'x-timestamp': expect.any(String),
-            'x-csrf-token': 'mock-csrf-token'
+            'X-CSRF-Token': 'mock-csrf-token'
           },
           'credentials': 'include',
           'mode': 'cors',

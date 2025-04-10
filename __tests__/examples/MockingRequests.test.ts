@@ -51,7 +51,7 @@ describe('MockingRequests Example - Global Mocking', () => {
         (global.fetch as jest.Mock).mockResolvedValue({
             ok: true,
             headers: new Headers({
-                'x-csrf-token': 'mock-csrf-token'
+                'X-CSRF-Token': 'mock-csrf-token'
             }),
             json: async () => ({
                 success: true,
@@ -84,7 +84,7 @@ describe('MockingRequests Example - Global Mocking', () => {
         (global.fetch as jest.Mock).mockResolvedValueOnce({
             ok: true,
             headers: new Headers({
-                'x-csrf-token': 'mock-csrf-token'
+                'X-CSRF-Token': 'mock-csrf-token'
             }),
             json: async () => ({
                 success: true,
@@ -119,7 +119,7 @@ describe('MockingRequests Example - Global Mocking', () => {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                     'x-api-key': 'test-public-key-id_test-project-id_test-user-id',
-                    'x-csrf-token': 'mock-csrf-token',
+                    'X-CSRF-Token': 'mock-csrf-token',
                     'x-signature': 'mocked-signature',
                     'x-timestamp': expect.any(String)
                 }),
@@ -145,7 +145,7 @@ describe('MockingRequests Example - Mock Factory', () => {
             ok: success,
             status,
             headers: new Headers({
-                'x-csrf-token': 'mock-csrf-token'
+                'X-CSRF-Token': 'mock-csrf-token'
             }),
             json: async () => ({
                 success,
@@ -249,7 +249,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
         (global.fetch as jest.Mock).mockResolvedValueOnce({
             ok: true,
             headers: new Headers({
-                'x-csrf-token': 'mock-csrf-token'
+                'X-CSRF-Token': 'mock-csrf-token'
             }),
             json: async () => ({ success: true, data: { token: 'mock-csrf-token' } }),
             status: 200
@@ -277,7 +277,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             const mockHeaders = {
                 get: jest.fn().mockImplementation((name: string) => {
                     const headers: Record<string, string> = {
-                        'x-csrf-token': 'mock-csrf-token',
+                        'X-CSRF-Token': 'mock-csrf-token',
                         'authorization': 'Bearer mock-token'
                     };
                     return headers[name.toLowerCase()] || null;
@@ -418,7 +418,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({ success: true, data: { token: 'mock-csrf-token' } }),
                 status: 200
@@ -448,7 +448,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({
                     success: true,
@@ -477,7 +477,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({
                     success: true,
@@ -506,7 +506,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({
                     success: true,
@@ -536,7 +536,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({
                     success: true,
@@ -560,7 +560,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: false,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({
                     success: false,
@@ -593,7 +593,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
                 .mockResolvedValueOnce({
                     ok: true,
                     headers: new Headers({
-                        'x-csrf-token': 'mock-csrf-token'
+                        'X-CSRF-Token': 'mock-csrf-token'
                     }),
                     json: async () => ({
                         success: true,
@@ -618,7 +618,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({
                     success: true,
@@ -682,7 +682,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
                     get: (name: string) => {
                         const headers = {
                             'authorization': 'Bearer mock-token',
-                            'x-csrf-token': 'mock-csrf-token'
+                            'X-CSRF-Token': 'mock-csrf-token'
                         };
                         return headers[name as keyof typeof headers] || null;
                     }
