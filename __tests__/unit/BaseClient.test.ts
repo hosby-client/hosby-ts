@@ -224,7 +224,7 @@ describe('BaseClient', () => {
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'x-csrf-token': 'mock-csrf-token',
+                        'X-CSRF-Token': 'mock-csrf-token',
                         'x-api-key': 'test-api-key-id_test-project-id_test-user-id',
                         'x-signature': 'mocked-signature',
                         'x-timestamp': expect.any(String)

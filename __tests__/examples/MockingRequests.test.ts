@@ -51,7 +51,7 @@ describe('MockingRequests Example - Global Mocking', () => {
         (global.fetch as jest.Mock).mockResolvedValue({
             ok: true,
             headers: new Headers({
-                'x-csrf-token': 'mock-csrf-token'
+                'X-CSRF-Token': 'mock-csrf-token'
             }),
             json: async () => ({
                 success: true,
@@ -84,7 +84,7 @@ describe('MockingRequests Example - Global Mocking', () => {
         (global.fetch as jest.Mock).mockResolvedValueOnce({
             ok: true,
             headers: new Headers({
-                'x-csrf-token': 'mock-csrf-token'
+                'X-CSRF-Token': 'mock-csrf-token'
             }),
             json: async () => ({
                 success: true,
@@ -119,7 +119,7 @@ describe('MockingRequests Example - Global Mocking', () => {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                     'x-api-key': 'test-public-key-id_test-project-id_test-user-id',
-                    'x-csrf-token': 'mock-csrf-token',
+                    'X-CSRF-Token': 'mock-csrf-token',
                     'x-signature': 'mocked-signature',
                     'x-timestamp': expect.any(String)
                 }),
@@ -145,7 +145,7 @@ describe('MockingRequests Example - Mock Factory', () => {
             ok: success,
             status,
             headers: new Headers({
-                'x-csrf-token': 'mock-csrf-token'
+                'X-CSRF-Token': 'mock-csrf-token'
             }),
             json: async () => ({
                 success,
@@ -249,7 +249,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
         (global.fetch as jest.Mock).mockResolvedValueOnce({
             ok: true,
             headers: new Headers({
-                'x-csrf-token': 'mock-csrf-token'
+                'X-CSRF-Token': 'mock-csrf-token'
             }),
             json: async () => ({ success: true, data: { token: 'mock-csrf-token' } }),
             status: 200
@@ -277,7 +277,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             const mockHeaders = {
                 get: jest.fn().mockImplementation((name: string) => {
                     const headers: Record<string, string> = {
-                        'x-csrf-token': 'mock-csrf-token',
+                        'X-CSRF-Token': 'mock-csrf-token',
                         'authorization': 'Bearer mock-token'
                     };
                     return headers[name.toLowerCase()] || null;
@@ -396,8 +396,8 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
         // Test case 3: Update user
         const updateResponse = await client.updateOne<User>(
             'users',
-            [{ field: 'id', value: '123' }],
-            { active: false } // Update data
+            { active: false },
+            [{ field: 'id', value: '123' }]
         );
 
         expect(updateResponse.success).toBe(true);
@@ -418,7 +418,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({ success: true, data: { token: 'mock-csrf-token' } }),
                 status: 200
@@ -448,7 +448,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({
                     success: true,
@@ -477,7 +477,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({
                     success: true,
@@ -506,7 +506,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({
                     success: true,
@@ -524,8 +524,8 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             // Update the user
             const updateResponse = await client.updateOne<User>(
                 'users',
-                [{ field: 'id', value: userId }],
-                updateData
+                updateData,
+                [{ field: 'id', value: userId }]        
             );
 
             expect(updateResponse.success).toBe(true);
@@ -536,7 +536,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({
                     success: true,
@@ -560,7 +560,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: false,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({
                     success: false,
@@ -593,7 +593,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
                 .mockResolvedValueOnce({
                     ok: true,
                     headers: new Headers({
-                        'x-csrf-token': 'mock-csrf-token'
+                        'X-CSRF-Token': 'mock-csrf-token'
                     }),
                     json: async () => ({
                         success: true,
@@ -618,7 +618,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: new Headers({
-                    'x-csrf-token': 'mock-csrf-token'
+                    'X-CSRF-Token': 'mock-csrf-token'
                 }),
                 json: async () => ({
                     success: true,
@@ -682,7 +682,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
                     get: (name: string) => {
                         const headers = {
                             'authorization': 'Bearer mock-token',
-                            'x-csrf-token': 'mock-csrf-token'
+                            'X-CSRF-Token': 'mock-csrf-token'
                         };
                         return headers[name as keyof typeof headers] || null;
                     }
@@ -814,11 +814,11 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
                         // 3. If valid, update last login timestamp
                         const updateResponse = await client.updateOne<User>(
                             'users',
-                            [{ field: 'id', value: user.id }],
                             {
                                 lastLoginDate: new Date().toISOString(),
                                 loginAttempts: 0
-                            }
+                            },
+                            [{ field: 'id', value: user.id }]
                         );
 
                         if (!updateResponse.success) {
@@ -838,8 +838,8 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
                     // 4. If invalid, increment login attempts
                     const updateResponse = await client.updateOne<User>(
                         'users',
-                        [{ field: 'id', value: user.id }],
-                        { loginAttempts: (user as any).loginAttempts + 1 }
+                        { loginAttempts: (user as any).loginAttempts + 1 },
+                        [{ field: 'id', value: user.id }]
                     );
 
                     if (!updateResponse.success) {
@@ -903,7 +903,7 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
         });
 
         await client.init();
- 
+
 
         // Verify the cookie value for CSRF token
         const initialCookieValue = (global.document.cookie as string).split('; ').find(row => row.startsWith('hosbyapiservices-X-CSRF-Token='));
@@ -925,5 +925,60 @@ describe('MockingRequests Example - Dynamic Response Based on Request', () => {
         // Verify that the CSRF token has been updated
         const updatedCookieValue = (global.document.cookie as string).split('; ').find(row => row.startsWith('hosbyapiservices-X-CSRF-Token='));
         expect(updatedCookieValue).toContain('hosbyapiservices-X-CSRF-Token=new-mock-csrf-token');
+    });
+
+    test('login and logout', async () => {
+        const mockLoginResponse = {
+            success: true,
+            status: 200,
+            message: 'Login successful',
+            data: { userId: 'test-user-id' }
+        };
+
+        const mockLogoutResponse = {
+            success: true,
+            status: 200,
+            message: 'Logout successful',
+            data: null
+        };
+
+        // Mock the login response
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: {
+                get: jest.fn().mockReturnValue('mock-csrf-token') || jest.fn() // Ensure get is defined
+            },
+            json: async () => mockLoginResponse,
+            status: 200
+        });
+
+        const authClient = new HosbyClient({
+            baseURL: 'https://api.hosby.com',
+            privateKey: 'test-private-key',
+            projectId: 'test-project-id',
+            userId: 'test-user-id',
+            apiKeyId: 'test-api-key-id',
+            projectName: 'testproject'
+        });
+
+        // Test login
+        const loginResponse = await authClient.login('test-authenticator', 'users', { username: 'testuser', password: 'password' });
+        expect(loginResponse.success).toBe(true);
+        expect(loginResponse.message).toBe('Login successful');
+
+        // Mock the logout response
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            headers: {
+                get: jest.fn().mockReturnValue('mock-csrf-token') || jest.fn() // Ensure get is defined
+            },
+            json: async () => mockLogoutResponse,
+            status: 200
+        });
+
+        // Test logout
+        const logoutResponse = await authClient.logout('test-authenticator', 'users');
+        expect(logoutResponse.success).toBe(true);
+        expect(logoutResponse.message).toBe('Logout successful');
     });
 });

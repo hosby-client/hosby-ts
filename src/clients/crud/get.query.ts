@@ -5,7 +5,7 @@ export class GetQueryClient {
     constructor(private readonly baseClient: BaseClient) { }
 
     /**
-     * Find multiple documents based on filter criteria
+     * Find multiple documents based or not filter criteria
      * @template T - Type of documents to return, typically an array type like User[]
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
@@ -292,6 +292,116 @@ export class GetQueryClient {
     }
 
     /**
+     * Find a unique document by field/value pairs
+     * @template T - Type of document being queried
+     * @param table - Name of the table/collection
+     * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
+     * @param options - Additional query options
+     * @param options.populate - Array of field paths to populate in the response
+     * @returns Promise resolving to ApiResponse containing:
+     *   - success: Whether query was successful (true/false)
+     *   - status: HTTP status code (200 for success)
+     *   - message: Response message describing the result
+     *   - data: The found document of type T, or null if not found
+     * @throws Error if table or queryFilters are missing/empty
+     * @example
+     * ```typescript
+     * interface User {
+     *   id: string;
+     *   email: string;
+     *   role: string;
+     *   profile?: {
+     *     name: string;
+     *     avatar: string;
+     *   }
+     * }
+     * 
+     * // Find a specific user by email and populate their profile
+     * const result = await getClient.findUnique<User>(
+     *   'users',
+     *   [{ field: 'email', value: 'user@example.com' }],
+     *   { populate: ['profile'] }
+     * );
+     * 
+     * if (result.success && result.data) {
+     *   const user = result.data;
+     *   console.log(`Found user: ${user.profile?.name}`);
+     * }
+     * ```
+     */
+    async findUnique<T>(
+        table: string,
+        queryFilters: QueryFilter[],
+        options?: Pick<QueryOptions, 'populate'>
+    ): Promise<ApiResponse<T>> {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
+            throw new Error('Table name and query filters are required');
+        }
+
+        return this.baseClient['request']<T>(
+            'GET',
+            `${table}/findUnique`,
+            queryFilters,
+            options
+        );
+    }
+
+    /**
+     * Find the first document matching the query filters
+     * @template T - Type of document being queried
+     * @param table - Name of the table/collection
+     * @param queryFilters - Array of filter criteria for querying. Each filter should have field and value properties
+     * @param options - Additional query options
+     * @param options.populate - Array of field paths to populate in the response
+     * @returns Promise resolving to ApiResponse containing:
+     *   - success: Whether query was successful (true/false)
+     *   - status: HTTP status code (200 for success)
+     *   - message: Response message describing the result
+     *   - data: The first found document of type T, or null if not found
+     * @throws Error if table or queryFilters are missing/empty
+     * @example
+     * ```typescript
+     * interface User {
+     *   id: string;
+     *   email: string;
+     *   role: string;
+     *   profile?: {
+     *     name: string;
+     *     avatar: string;
+     *   }
+     * }
+     * 
+     * // Find first admin user and populate their profile
+     * const result = await getClient.findFirst<User>(
+     *   'users',
+     *   [{ field: 'role', value: 'admin' }],
+     *   { populate: ['profile'] }
+     * );
+     * 
+     * if (result.success && result.data) {
+     *   const admin = result.data;
+     *   console.log(`Found admin: ${admin.profile?.name}`);
+     * }
+     * ```
+     */
+    async findFirst<T>(
+        table: string,
+        queryFilters: QueryFilter[],
+        options?: Pick<QueryOptions, 'populate'>
+    ): Promise<ApiResponse<T>> {
+        if (!table || typeof table !== 'string' || !queryFilters?.length) {
+            throw new Error('Table name and query filters are required');
+        }
+
+        return this.baseClient['request']<T>(
+            'GET',
+            `${table}/findFirst`,
+            queryFilters,
+            options
+        );
+    }
+
+    /**
      * Find documents where a field is greater than a value
      * @template T - Type of documents being queried
      * @param table - Name of the table/collection
@@ -437,7 +547,6 @@ export class GetQueryClient {
      * ```
      */
     async findEqual<T>(
-        project: string,
         table: string,
         queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'limit'>

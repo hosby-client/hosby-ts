@@ -1,4 +1,4 @@
-import { HosbyClient } from '../../src';
+import { HosbyClient, QueryOptions } from '../../src';
 import fetchMock from 'jest-fetch-mock';
 
 // Define sample interfaces for testing
@@ -142,7 +142,7 @@ describe('CRUD Operations Integration', () => {
             'x-api-key': 'mock-api-key-id_mock-project-id_mock-user-id',
             'x-signature': 'mocked-signature',
             'x-timestamp': expect.any(String),
-            'x-csrf-token': 'mock-csrf-token'
+            'X-CSRF-Token': 'mock-csrf-token'
           },
           'credentials': 'include',
           'mode': 'cors',
@@ -226,8 +226,8 @@ describe('CRUD Operations Integration', () => {
       
       const response = await client.upsert<User, UserCreate>(
         'users',
+        userData,
         [{ field: 'email', value: 'existing@example.com' }],
-        userData
       );
       
       expect(response.success).toBe(true);
@@ -262,8 +262,8 @@ describe('CRUD Operations Integration', () => {
       
       const response = await client.replaceOne<User, UserCreate>(
         'users',
-        [{ field: 'id', value: '5' }],
-        replacementData
+        replacementData,
+        [{ field: 'id', value: '5' }]
       );
       
       expect(response.success).toBe(true);
@@ -302,8 +302,8 @@ describe('CRUD Operations Integration', () => {
       
       const response = await client.updateOne<User>(
         'users',
-        [{ field: 'id', value: '6' }],
-        updateData
+        updateData,
+        [{ field: 'id', value: '6' }]
       );
       
       expect(response.success).toBe(true);
@@ -330,8 +330,8 @@ describe('CRUD Operations Integration', () => {
       
       const response = await client.updateMany<{ modifiedCount: number }>(
         'users',
-        [{ field: 'role', value: 'guest' }],
-        updateData
+        updateData,
+        [{ field: 'role', value: 'guest' }]
       );
       
       expect(response.success).toBe(true);
@@ -516,4 +516,36 @@ describe('CRUD Operations Integration', () => {
       expect(response.data[0].name).toContain('Older User');
     });
   });
+
+
+test('should find documents with query options', async () => {
+  const mockUsers: User[] = [
+    { id: '10', name: 'User A', email: 'userA@example.com', active: true },
+    { id: '11', name: 'User B', email: 'userB@example.com', active: true }
+  ];
+
+  fetchMock.mockResponseOnce(JSON.stringify({
+    success: true,
+    status: 200,
+    message: 'Users retrieved successfully',
+    data: mockUsers
+  }));
+
+  const options: QueryOptions = {
+    populate: ['profile'],
+    skip: 0,
+    limit: 10,
+    query: {
+      active: { $eq: true }
+    },
+    slice: [0, 5]
+  };
+
+  const response = await client.find<User[]>('users', [], options);
+
+  expect(response.success).toBe(true);
+  expect(response.data).toHaveLength(2);
+  expect(response.data[0].name).toBe('User A');
+  expect(response.data[1].name).toBe('User B');
+});
 });

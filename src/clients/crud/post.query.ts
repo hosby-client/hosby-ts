@@ -9,7 +9,7 @@ export class PostQueryClient {
      * @template T - Type of the returned document
      * @template D - Type of the data to insert (defaults to unknown)
      * @param table - Name of the table/collection
-     * @param data - Document to insert. Should match type D
+     * @param payload - Document to insert. Should match type D
      * @param options - Additional query options
      * @param options.populate - Array of field paths to populate in the returned document
      * @returns Promise resolving to ApiResponse containing:
@@ -20,7 +20,7 @@ export class PostQueryClient {
      * @throws Error if project, table or data is missing
      * @example
      * ```typescript
-     * interface User {
+     * interface UserInput {
      *   id: string;
      *   name: string;
      *   email: string;
@@ -30,8 +30,10 @@ export class PostQueryClient {
      *   }
      * }
      * 
+     * type UserReturn = Omit<UserInput, 'id'>; // Type for input data without id
+     * 
      * // Insert new user and populate profile
-     * const result = await postClient.insertOne<User>(
+     * const result = await postClient.insertOne<UserReturn, UserInput>(
      *   'users',
      *   { 
      *     name: 'John Doe',
@@ -45,17 +47,17 @@ export class PostQueryClient {
      * );
      * 
      * if (result.success) {
-     *   const newUser = result.data as User;
+     *   const newUser = result.data;
      *   console.log('Created user:', newUser);
      * }
      * ```
      */
     async insertOne<T, D = unknown>(
         table: string,
-        data: D,
+        payload: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!table || typeof table !== 'string' || !data) {
+        if (!table || typeof table !== 'string' || !payload) {
             throw new Error('Table and data are required');
         }
 
@@ -64,7 +66,7 @@ export class PostQueryClient {
             `${table}/insertOne`,
             undefined,
             options,
-            data
+            payload
         );
     }
 
@@ -73,7 +75,7 @@ export class PostQueryClient {
      * @template T - Type of the returned documents array
      * @template D - Type of documents being inserted (defaults to unknown)
      * @param table - Name of the table/collection
-     * @param data - Array of documents to insert. Each document should match type D
+     * @param payload - Array of documents to insert. Each document should match type D
      * @param options - Additional query options
      * @param options.populate - Fields to populate in the returned documents. Can be a string for a single field or array of strings for multiple fields
      * @returns Promise resolving to ApiResponse containing:
@@ -84,7 +86,7 @@ export class PostQueryClient {
      * @throws Error if project, table or data array is missing/empty
      * @example
      * ```typescript
-     * interface User {
+     * interface UserReturn {
      *   id: string;
      *   name: string;
      *   email: string;
@@ -93,9 +95,11 @@ export class PostQueryClient {
      *     bio: string;
      *   }
      * }
-     * 
+     *  
+     * type UserInput = Omit<User, 'id'>; // Type for input data without id
+     *
      * // Insert multiple users and populate profiles
-     * const result = await postClient.insertMany<User[]>(
+     * const result = await postClient.insertMany<UserReturn[], UserInput[]>(
      *   'users',
      *   [
      *     { 
@@ -113,17 +117,17 @@ export class PostQueryClient {
      * );
      * 
      * if (result.success) {
-     *   const users = result.data as User[];
+     *   const users = result.data;
      *   console.log('Created users:', users);
      * }
      * ```
      */
     async insertMany<T, D = unknown>(
         table: string,
-        data: D[],
+        payload: D[],
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
-        if (!table || typeof table !== 'string' || !data) {
+        if (!table || typeof table !== 'string' || !payload) {
             throw new Error('Table and data are required');
         }
 
@@ -132,7 +136,7 @@ export class PostQueryClient {
             `${table}/insertMany`,
             undefined,
             options,
-            data
+            payload
         );
     }
 
@@ -161,12 +165,14 @@ export class PostQueryClient {
      *     avatar: string;
      *     bio: string;
      *   }
-     * }
+     * }    
+     * 
+     * // Example of using generic types
+     * type UserInput = Omit<User, 'id'>; // Type for input data without id
      * 
      * // Upsert user by email and populate profile
-     * const result = await postClient.upsert<User>(
+     * const result = await postClient.upsert<User, UserInput>(
      *   'users',
-     *   [{ field: 'email', value: 'user@example.com' }],
      *   { 
      *     name: 'John Doe',
      *     email: 'user@example.com',
@@ -175,19 +181,20 @@ export class PostQueryClient {
      *       bio: 'Software Developer'
      *     }
      *   },
+     *   [{ field: 'email', value: 'user@example.com' }],
      *   { populate: ['profile'] }
      * );
      * 
      * if (result.success) {
-     *   const user = result.data as User;
+     *   const user = result.data;
      *   console.log('Upserted user:', user);
      * }
      * ```
      */
     async upsert<T, D = unknown>(
         table: string,
+        payload: D,
         filters: QueryFilter[],
-        data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
         if (!table || typeof table !== 'string') {
@@ -203,7 +210,7 @@ export class PostQueryClient {
             `${table}/upsert`,
             filters,
             options,
-            data
+            payload
         );
     }
 }

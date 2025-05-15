@@ -208,9 +208,9 @@ describe('HosbyClient', () => {
             const filters = [{ field: 'id', value: '123' }];
             const data = { name: 'Updated User' };
 
-            await client.replaceOne(table, filters, data);
+            await client.replaceOne(table, data, filters);
 
-            expect(mockReplaceOneImpl).toHaveBeenCalledWith(table, filters, data);
+            expect(mockReplaceOneImpl).toHaveBeenCalledWith(table, data, filters);
         });
 
         test('should delegate updateOne() to PatchQueryClient.updateOne', async () => {
@@ -219,9 +219,9 @@ describe('HosbyClient', () => {
             const filters = [{ field: 'id', value: '123' }];
             const data = { status: 'active' };
 
-            await client.updateOne(table, filters, data);
+            await client.updateOne(table, data, filters);
 
-            expect(mockUpdateOneImpl).toHaveBeenCalledWith(table, filters, data);
+            expect(mockUpdateOneImpl).toHaveBeenCalledWith(table, data, filters);
         });
 
         test('should delegate deleteOne() to DeleteQueryClient.deleteOne', async () => {

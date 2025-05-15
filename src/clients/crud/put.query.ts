@@ -10,7 +10,7 @@ export class PutQueryClient {
      * @template D - Type of the replacement data (defaults to unknown)
      * @param table - Name of the table/collection 
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
-     * @param data - New document data to replace with. Should match type D
+     * @param payload - New document data to replace with. Should match type D
      * @param options - Additional query options
      * @param options.populate - Array of field paths to populate in the returned document
      * @returns Promise resolving to ApiResponse containing:
@@ -21,7 +21,7 @@ export class PutQueryClient {
      * @throws Error if project, table or queryFilters are missing/empty
      * @example
      * ```typescript
-     * interface User {
+     * interface UserReturn {
      *   id: string;
      *   name: string;
      *   email: string;
@@ -31,10 +31,11 @@ export class PutQueryClient {
      *   }
      * }
      * 
+     * type UserPayload = Omit<UserReturn, 'id'>; // Type for input data without id
+     * 
      * // Replace user document by ID and populate profile
-     * const result = await putClient.replaceOne<User>(
+     * const result = await putClient.replaceOne<UserReturn, UserPayload>(
      *   'users',
-     *   [{ field: 'id', value: '507f1f77bcf86cd799439011' }],
      *   { 
      *     name: 'New Name',
      *     email: 'new@example.com',
@@ -43,14 +44,15 @@ export class PutQueryClient {
      *       bio: 'Updated bio'
      *     }
      *   },
+     *   [{ field: 'id', value: '507f1f77bcf86cd799439011' }],
      *   { populate: ['profile'] }
      * );
      * ```
      */
     async replaceOne<T, D = unknown>(
         table: string,
+        payload: D,
         queryFilters: QueryFilter[],
-        data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
         if (!table || typeof table !== 'string' || !queryFilters.length) {
@@ -62,7 +64,7 @@ export class PutQueryClient {
             `${table}/replaceOne`,
             queryFilters,
             options,
-            data
+            payload
         );
     }
 
@@ -72,7 +74,7 @@ export class PutQueryClient {
      * @template D - Type of the replacement data (defaults to unknown)
      * @param table - Name of the table/collection
      * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
-     * @param data - New document data to replace with. Should match type D
+     * @param payload - New document data to replace with. Should match type D
      * @param options - Additional query options
      * @param options.populate - Fields to populate in the returned document. Can be a string for a single field or array of strings for multiple fields
      * @returns Promise resolving to ApiResponse containing:
@@ -96,7 +98,6 @@ export class PutQueryClient {
      * // Find and replace user by email and populate profile
      * const result = await putClient.findOneAndReplace<User>(
      *   'users',
-     *   [{ field: 'email', value: 'user@example.com' }],
      *   { 
      *     name: 'New Name',
      *     email: 'user@example.com',
@@ -105,19 +106,20 @@ export class PutQueryClient {
      *       bio: 'Updated bio'
      *     }
      *   },
+     *   [{ field: 'email', value: 'user@example.com' }],
      *   { populate: ['profile'] }
      * );
      * 
      * if (result.success) {
-     *   const replacedUser = result.data as User;
+     *   const replacedUser = result.data;
      *   console.log('Replaced user:', replacedUser);
      * }
      * ```
      */
     async findOneAndReplace<T, D = unknown>(
         table: string,
+        payload: D,
         queryFilters: QueryFilter[],
-        data: D,
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
         if (!table || typeof table !== 'string') {
@@ -133,7 +135,7 @@ export class PutQueryClient {
             `${table}/findOneAndReplace`,
             queryFilters,
             options,
-            data
+            payload
         );
     }
 }

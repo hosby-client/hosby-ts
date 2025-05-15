@@ -6,6 +6,13 @@
 
 TypeScript client library for consuming APIs created on the Hosby Backend-as-a-Service platform.
 
+<div align="center">
+  <img src="https://hosby.io/hosby.png" alt="Hosby Logo" width="200"/>
+  <br/>
+  <a href="https://docs.hosby.io">Documentation</a> | <a href="https://hosby.io/en">Platform</a>
+</div>
+
+
 ## Features
 
 - 🔒 **Secure Authentication**: RSA signature verification, CSRF protection, and JWT token management
@@ -30,10 +37,10 @@ pnpm add hosby-ts
 ## Quick Start
 
 ```typescript
-import { HosbyClient, createClient } from 'hosby-ts';
+import { HosbyClient } from 'hosby-ts';
 
 // Create a client instance
-const client = createClient({
+const client = new HosbyClient({
   baseURL: 'https://api.example.com',
   privateKey: 'your-private-key',
   apiKeyId: 'your-api-key-id',
@@ -185,9 +192,6 @@ const foundAndDeleted = await client.findOneAndDelete<User>(
   { field: 'role', value: 'admin' },
   { field: 'active', value: true }
 ]
-
-// Advanced operators
-[{ field: 'age', value: { $gt: 18, $lt: 65 } }]
 ```
 
 ### Query Options

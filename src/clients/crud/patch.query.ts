@@ -38,8 +38,8 @@ export class PatchQueryClient {
      * // Update user by email and populate profile
      * const result = await patchClient.updateOne<User, UserUpdate>(
      *   'users', 
-     *   [{ field: 'email', value: 'user@example.com' }],
      *   { status: 'active' },
+     *   [{ field: 'email', value: 'user@example.com' }],
      *   { populate: ['profile'] }
      * );
      * 
@@ -53,8 +53,8 @@ export class PatchQueryClient {
      */
     async updateOne<T, D = unknown>(
         table: string,
-        queryFilters: QueryFilter[],
         data: D,
+        queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
         if (!table || typeof table !== 'string' || !queryFilters?.length) {
@@ -102,15 +102,15 @@ export class PatchQueryClient {
      * // T = UpdateResponse (return type), UserUpdate (data type)
      * const result = await patchClient.updateMany<UpdateResponse, UserUpdate>(
      *   'users',
-     *   [
-     *     { field: 'active', value: false },
-     *     { field: 'role', value: 'user' }
-     *   ],
-     *   { 
+     *   {
      *     status: 'archived',
      *     tags: ['inactive', 'archived'],
      *     lastModified: new Date()
      *   },
+     *   [
+     *     { field: 'active', value: false },
+     *     { field: 'role', value: 'user' }
+     *   ],
      *   { limit: 100 }
      * );
      * console.log(`Updated ${result.data.modifiedCount} documents`);
@@ -118,8 +118,8 @@ export class PatchQueryClient {
      */
     async updateMany<T, D = unknown>(
         table: string,
-        filters: QueryFilter[],
         data: D,
+        filters: QueryFilter[],
         options?: Pick<QueryOptions, 'populate' | 'limit'>
     ): Promise<ApiResponse<T>> {
         if (!table || typeof table !== 'string') {
@@ -169,21 +169,21 @@ export class PatchQueryClient {
      * // Find and update user by email
      * const result = await patchClient.findOneAndUpdate<User, UserUpdate>(
      *   'users',
-     *   [{ field: 'email', value: 'user@example.com' }],
      *   { lastLoginDate: new Date() },
+     *   [{ field: 'email', value: 'user@example.com' }],
      *   { populate: ['profile', 'settings'] }
      * );
      * 
      * if (result.success) {
-     *   const updatedUser = result.data as User;
+     *   const updatedUser = result.data;
      *   console.log('Updated user:', updatedUser);
      * }
      * ```
      */
     async findOneAndUpdate<T, D = unknown>(
         table: string,
-        queryFilters: QueryFilter[],
         data: D,
+        queryFilters: QueryFilter[],
         options?: Pick<QueryOptions, 'populate'>
     ): Promise<ApiResponse<T>> {
         if (!table || typeof table !== 'string' || !queryFilters.length) {

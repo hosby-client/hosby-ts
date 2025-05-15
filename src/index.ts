@@ -9,7 +9,7 @@ import { BaseClientConfig } from './types';
  * @example Basic usage
  * ```typescript
  * const client = new HosbyClient({
- *   baseURL: 'https://api.example.com',
+ *   baseURL: 'https://api.hosby.io',
  *   apiKey: 'your-api-key',
  *   privateKey: 'your-private-key',
  *   apiKeyId: 'your-api-key-id',
@@ -51,6 +51,8 @@ export class HosbyClient {
     this.findLessThan = (...args) => this.crudClient.get.findLessThan(...args);
     this.findGreaterThan = (...args) => this.crudClient.get.findGreaterThan(...args);
     this.findByField = (...args) => this.crudClient.get.findByField(...args);
+    this.findUnique = (...args) => this.crudClient.get.findUnique(...args);
+    this.findFirst = (...args) => this.crudClient.get.findFirst(...args);
 
     this.insertOne = (...args) => this.crudClient.post.insertOne(...args);
     this.insertMany = (...args) => this.crudClient.post.insertMany(...args);
@@ -69,6 +71,9 @@ export class HosbyClient {
     this.deleteByToken = (...args) => this.crudClient.delete.deleteByToken(...args);
     this.deleteById = (...args) => this.crudClient.delete.deleteById(...args);
     this.findOneAndDelete = (...args) => this.crudClient.delete.findOneAndDelete(...args);
+
+    this.login = (...args) => this.crudClient.auth.login(...args)
+    this.logout = (...args) => this.crudClient.auth.logout(...args);
   }
 
   /**
@@ -81,7 +86,37 @@ export class HosbyClient {
     await this.baseClient.init();
   }
 
-  // CRUD operation methods
+  /**
+ * Logs in a user to the specified table/collection.
+ * This method sends a POST request to the login endpoint with the provided data.
+ * 
+ * @template T - Type of the expected response data
+ * @template D - Type of the data to be sent in the login request (defaults to unknown)
+ * @param table - Name of the table/collection to log in to
+ * @param data - The data to be sent for login, which should match type D
+ * @returns Promise resolving to ApiResponse containing:
+ *   - success: Whether the login was successful (true/false)
+ *   - status: HTTP status code (typically 200 for success)
+ *   - message: Response message describing the result
+ *   - data: Additional data returned from the login operation, if any
+ * @throws Error if the table name is missing, not a string, or if data is not provided
+ */
+  public login: typeof CrudClient.prototype.auth.login;
+
+  /**
+   * Logs out the user from the specified table/collection.
+   * This method sends a GET request to the logout endpoint to terminate the user's session.
+   * 
+   * @template T - Type of the expected response data
+   * @param table - Name of the table/collection from which to log out the user
+   * @returns Promise resolving to ApiResponse containing:
+   *   - success: Whether the logout was successful (true/false)
+   *   - status: HTTP status code (typically 200 for success)
+   *   - message: Response message describing the result
+   *   - data: Additional data returned from the logout operation, if any
+   * @throws Error if the table name is missing or not a string
+   */
+  public logout: typeof CrudClient.prototype.auth.logout;
 
   /**
    * Find multiple documents based on filter criteria
@@ -133,7 +168,7 @@ export class HosbyClient {
    * );
    * 
    * if (response.success) {
-   *   const users = response.data as User[];
+   *   const users = response.data;
    *   users.forEach(user => {
    *     console.log(`${user.profile?.name}: ${user.posts?.length} posts`);
    *   });
@@ -171,7 +206,7 @@ export class HosbyClient {
    * );
    * 
    * if (result.success) {
-   *   const doc = result.data as Document;
+   *   const doc = result.data;
    *   console.log('Found document:', doc.title);
    * }
    * ```
@@ -207,7 +242,7 @@ export class HosbyClient {
    * );
    * 
    * if (result.success) {
-   *   const user = result.data as User;
+   *   const user = result.data;
    *   console.log('Found user:', user.name);
    * }
    * ```
@@ -249,7 +284,7 @@ export class HosbyClient {
    * );
    * 
    * if (result.success) {
-   *   const user = result.data as User;
+   *   const user = result.data;
    *   console.log('Found user:', user);
    * }
    * ```
@@ -601,6 +636,88 @@ export class HosbyClient {
 
 
   /**
+   * Find a unique document by field/value pairs
+   * @template T - Type of document being queried
+   * @param table - Name of the table/collection
+   * @param queryFilters - Array of filter criteria for querying. Each filter should have field, value properties
+   * @param options - Additional query options
+   * @param options.populate - Array of field paths to populate in the response
+   * @returns Promise resolving to ApiResponse containing:
+   *   - success: Whether query was successful (true/false)
+   *   - status: HTTP status code (200 for success)
+   *   - message: Response message describing the result
+   *   - data: The found document of type T, or null if not found
+   * @throws Error if table or queryFilters are missing/empty
+   * @example
+   * ```typescript
+   * interface User {
+   *   id: string;
+   *   email: string;
+   *   role: string;
+   *   profile?: {
+   *     name: string;
+   *     avatar: string;
+   *   }
+   * }
+   * 
+   * // Find a specific user by email and populate their profile
+   * const result = await getClient.findUnique<User>(
+   *   'users',
+   *   [{ field: 'email', value: 'user@example.com' }],
+   *   { populate: ['profile'] }
+   * );
+   * 
+   * if (result.success && result.data) {
+   *   const user = result.data;
+   *   console.log(`Found user: ${user.profile?.name}`);
+   * }
+   * ```
+   */
+  public findUnique: typeof CrudClient.prototype.get.findUnique;
+
+  /**
+   * Find the first document matching the query filters
+   * @template T - Type of document being queried
+   * @param table - Name of the table/collection
+   * @param queryFilters - Array of filter criteria for querying. Each filter should have field and value properties
+   * @param options - Additional query options
+   * @param options.populate - Array of field paths to populate in the response
+   * @returns Promise resolving to ApiResponse containing:
+   *   - success: Whether query was successful (true/false)
+   *   - status: HTTP status code (200 for success)
+   *   - message: Response message describing the result
+   *   - data: The first found document of type T, or null if not found
+   * @throws Error if table or queryFilters are missing/empty
+   * @example
+   * ```typescript
+   * interface User {
+   *   id: string;
+   *   email: string;
+   *   role: string;
+   *   profile?: {
+   *     name: string;
+   *     avatar: string;
+   *   }
+   * }
+   * 
+   * // Find first admin user and populate their profile
+   * const result = await getClient.findFirst<User>(
+   *   'users',
+   *   [{ field: 'role', value: 'admin' }],
+   *   { populate: ['profile'] }
+   * );
+   * 
+   * if (result.success && result.data) {
+   *   const admin = result.data;
+   *   console.log(`Found admin: ${admin.profile?.name}`);
+   * }
+   * ```
+   */
+  public findFirst: typeof CrudClient.prototype.get.findFirst;
+  
+
+
+  /**
    * Insert a single document
    * @template T - Type of the returned document
    * @template D - Type of the data to insert (defaults to unknown)
@@ -732,7 +849,6 @@ export class HosbyClient {
    * // Upsert user by email and populate profile
    * const result = await postClient.upsert<User>(
    *   'users',
-   *   [{ field: 'email', value: 'user@example.com' }],
    *   { 
    *     name: 'John Doe',
    *     email: 'user@example.com',
@@ -741,6 +857,7 @@ export class HosbyClient {
    *       bio: 'Software Developer'
    *     }
    *   },
+   *   [{ field: 'email', value: 'user@example.com' }],
    *   { populate: ['profile'] }
    * );
    * 
@@ -782,7 +899,6 @@ export class HosbyClient {
    * // Replace user document by ID and populate profile
    * const result = await putClient.replaceOne<User>(
    *   'users',
-   *   [{ field: 'id', value: '507f1f77bcf86cd799439011' }],
    *   { 
    *     name: 'New Name',
    *     email: 'new@example.com',
@@ -791,6 +907,7 @@ export class HosbyClient {
    *       bio: 'Updated bio'
    *     }
    *   },
+   *   [{ field: 'id', value: '507f1f77bcf86cd799439011' }],
    *   { populate: ['profile'] }
    * );
    * ```
@@ -827,7 +944,6 @@ export class HosbyClient {
    * // Find and replace user by email and populate profile
    * const result = await putClient.findOneAndReplace<User>(
    *   'users',
-   *   [{ field: 'email', value: 'user@example.com' }],
    *   { 
    *     name: 'New Name',
    *     email: 'user@example.com',
@@ -836,6 +952,7 @@ export class HosbyClient {
    *       bio: 'Updated bio'
    *     }
    *   },
+   *   [{ field: 'email', value: 'user@example.com' }],
    *   { populate: ['profile'] }
    * );
    * 
@@ -882,16 +999,16 @@ export class HosbyClient {
    * // Update user by email and populate profile
    * const result = await patchClient.updateOne<User, UserUpdate>(
    *   'users', 
-   *   [{ field: 'email', value: 'user@example.com' }],
    *   { status: 'active' },
+  *   [{ field: 'email', value: 'user@example.com' }],
    *   { populate: ['profile'] }
    * );
    * 
    * // Update document by ID
    * const result = await patchClient.updateOne<Document>(
    *   'documents',
-   *   [{ field: 'id', value: '123abc' }],
-   *   { title: 'Updated Title' }
+   *   { title: 'Updated Title' },
+   *   [{ field: 'id', value: '123abc' }]
    * );
    * ```
    */
@@ -930,15 +1047,12 @@ export class HosbyClient {
    * // T = UpdateResponse (return type), UserUpdate (data type)
    * const result = await patchClient.updateMany<UpdateResponse, UserUpdate>(
    *   'users',
-   *   [
-   *     { field: 'active', value: false },
-   *     { field: 'role', value: 'user' }
-   *   ],
    *   { 
    *     status: 'archived',
    *     tags: ['inactive', 'archived'],
    *     lastModified: new Date()
    *   },
+   *   [{ field: 'active', value: false }, { field: 'role', value: 'user' }],
    *   { limit: 100 }
    * );
    * console.log(`Updated ${result.data.modifiedCount} documents`);
@@ -981,8 +1095,8 @@ export class HosbyClient {
    * // Find and update user by email
    * const result = await patchClient.findOneAndUpdate<User, UserUpdate>(
    *   'users',
-   *   [{ field: 'email', value: 'user@example.com' }],
    *   { lastLoginDate: new Date() },
+   *   [{ field: 'email', value: 'user@example.com' }],
    *   { populate: ['profile', 'settings'] }
    * );
    * 
@@ -1293,7 +1407,7 @@ export type { ApiResponse, BaseClientConfig, QueryFilter, QueryOptions } from '.
  * 
  * // Create client instance
  * const client = new HosbyClient({
- *   baseURL: 'https://api.example.com',
+ *   baseURL: 'https://api.hosby.io',
  *   privateKey: 'your-private-key',
  *   apiKeyId: 'your-api-key-id',
  *   projectName: 'your-project-name',
@@ -1304,7 +1418,7 @@ export type { ApiResponse, BaseClientConfig, QueryFilter, QueryOptions } from '.
  * // Or use the createClient factory function
  * import { createClient } from '@hosby/client';
  * const client = createClient({
- *   baseURL: 'https://api.example.com',
+ *   baseURL: 'https://api.hosby.io',
  *   privateKey: 'your-private-key',
  *   apiKeyId: 'your-api-key-id',
  *   projectName: 'your-project-name',

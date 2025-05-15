@@ -103,7 +103,7 @@ export interface SecureClientConfig extends BaseClientConfig {
 export class BaseClient {
   private readonly baseURL: string;
   protected csrfToken?: string;
-  private readonly csrfCookieName?: string;
+  private readonly csrfCookieName: string = "hosbyapiservices-X-CSRF-Token";
   private readonly useSameToken?: boolean;
   private jwToken?: string;
   private readonly authConfig: {
@@ -140,7 +140,6 @@ export class BaseClient {
     }
 
     this.baseURL = config.baseURL;
-    this.csrfCookieName = (config as SecureClientConfig).csrfCookieName || 'hosbyapiservices-X-CSRF-Token';
     this.authConfig = {
       privateKey: '',
       apiKeyId: '',
@@ -202,6 +201,7 @@ export class BaseClient {
       } else {
         // In Node.js or other non-browser environments, cookies can't be set directly
         // Store in memory or log for debugging
+
         throw new Error(`Cookie ${name} would be set to ${value} (not in browser environment)`);
       }
     } catch (error) {
@@ -321,7 +321,7 @@ export class BaseClient {
   private syncCSRFToken(): void {
     if (this.isNode) return;
 
-    const cookieToken = this.getCookie(this.csrfCookieName as string);
+    const cookieToken = this.getCookie(this.csrfCookieName);
     const cookieName = this.csrfCookieName as string;
 
     if (!this.csrfToken && cookieToken) {
@@ -475,7 +475,7 @@ export class BaseClient {
       }
 
       if (!this.useSameToken) {
-        const newCsrfToken = response.headers.get('X-CSRF-Token') || response.headers.get('x-csrf-token');
+        const newCsrfToken = response.headers.get('x-csrf-token') || response.headers.get('X-CSRF-Token');
         if (newCsrfToken && newCsrfToken !== this.csrfToken) {
           this.updateCSRFToken(newCsrfToken);
         }
@@ -535,7 +535,7 @@ export class BaseClient {
     };
 
     if (this.csrfToken) {
-      headers['x-csrf-token'] = this.csrfToken;
+      headers['X-CSRF-Token'] = this.csrfToken;
 
       // Synchronize cookie with in-memory token in browser environments
       if (!this.isNode && this.csrfCookieName) {
@@ -561,17 +561,13 @@ export class BaseClient {
       headers['x-api-key'] = apiKey;
     }
 
-    if (options) {
-      const queryHeader: Record<string, unknown> = {};
-      if (options.populate) queryHeader['x-populate'] = options.populate;
-      if (typeof options.skip === 'number') queryHeader['x-skip'] = options.skip;
-      if (typeof options.limit === 'number') queryHeader['x-limit'] = options.limit;
-      if (options.query) queryHeader['x-query'] = options.query;
-      if (options.slice) queryHeader['x-slice'] = options.slice;
 
-      if (Object.keys(queryHeader).length > 0) {
-        headers['x-query'] = JSON.stringify(queryHeader);
-      }
+    if (options) {
+      if (options.populate) headers['x-populate'] = options.populate.join(',');
+      if (typeof options.skip === 'number') headers['x-skip'] = options.skip.toString();
+      if (typeof options.limit === 'number') headers['x-limit'] = options.limit.toString();
+      if (options.query) headers['x-query'] = JSON.stringify(options.query);
+      if (options.slice) headers['x-slice'] = options.slice.join(',');
     }
 
     return headers;
