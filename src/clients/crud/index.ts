@@ -4,6 +4,7 @@ import { PatchQueryClient } from "./patch.query";
 import { PostQueryClient } from "./post.query";
 import { PutQueryClient } from "./put.query";
 import { DeleteQueryClient } from "./delete.query";
+import { AuthClient } from "../auth/auth";
 
 /**
  * Main client class for interacting with the Hosby API.
@@ -40,6 +41,13 @@ import { DeleteQueryClient } from "./delete.query";
  */
 export class HosbyClient {
     private readonly baseClient: BaseClient;
+
+    /**
+     * Client for handling auth operations
+     * @public
+     */
+    public readonly auth: AuthClient;
+
 
     /**
      * Client for handling read operations
@@ -86,6 +94,7 @@ export class HosbyClient {
         this.put = new PutQueryClient(this.baseClient);
         this.patch = new PatchQueryClient(this.baseClient);
         this.delete = new DeleteQueryClient(this.baseClient);
+        this.auth = new AuthClient(this.baseClient);
     }
 }
 
@@ -121,6 +130,7 @@ export type { PostQueryClient };
 export type { PutQueryClient };
 export type { PatchQueryClient };
 export type { DeleteQueryClient };
+export type { AuthClient };
 
 // Default export for traditional module imports
 export default HosbyClient;

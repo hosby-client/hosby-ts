@@ -201,7 +201,7 @@ export class BaseClient {
       } else {
         // In Node.js or other non-browser environments, cookies can't be set directly
         // Store in memory or log for debugging
-        
+
         throw new Error(`Cookie ${name} would be set to ${value} (not in browser environment)`);
       }
     } catch (error) {
@@ -561,17 +561,13 @@ export class BaseClient {
       headers['x-api-key'] = apiKey;
     }
 
-    if (options) {
-      const queryHeader: Record<string, unknown> = {};
-      if (options.populate) queryHeader['x-populate'] = options.populate;
-      if (typeof options.skip === 'number') queryHeader['x-skip'] = options.skip;
-      if (typeof options.limit === 'number') queryHeader['x-limit'] = options.limit;
-      if (options.query) queryHeader['x-query'] = options.query;
-      if (options.slice) queryHeader['x-slice'] = options.slice;
 
-      if (Object.keys(queryHeader).length > 0) {
-        headers['x-query'] = JSON.stringify(queryHeader);
-      }
+    if (options) {
+      if (options.populate) headers['x-populate'] = options.populate.join(',');
+      if (typeof options.skip === 'number') headers['x-skip'] = options.skip.toString();
+      if (typeof options.limit === 'number') headers['x-limit'] = options.limit.toString();
+      if (options.query) headers['x-query'] = JSON.stringify(options.query);
+      if (options.slice) headers['x-slice'] = options.slice.join(',');
     }
 
     return headers;
