@@ -41,7 +41,7 @@ import { HosbyClient } from 'hosby-ts';
 
 // Create a client instance
 const client = new HosbyClient({
-  baseURL: 'https://api.example.com',
+  baseURL: 'https://api.hosby.io',
   privateKey: 'your-private-key',
   apiKeyId: 'your-api-key-id',
   projectName: 'your-project-name',
@@ -127,8 +127,8 @@ const newUsers = await client.insertMany<User[]>(
 // Upsert (create or update)
 const upsertedUser = await client.upsert<User>(
   'users',
-  [{ field: 'email', value: 'john@example.com' }],
-  { name: 'John Doe', email: 'john@example.com', active: true }
+    { name: 'John Doe', email: 'john@example.com', active: true },
+  [{ field: 'email', value: 'john@example.com' }]
 );
 ```
 
@@ -138,22 +138,22 @@ const upsertedUser = await client.upsert<User>(
 // Update a document
 const updatedUser = await client.updateOne<User>(
   'users',
+  { active: false },
   [{ field: 'id', value: '123456789' }],
-  { active: false }
 );
 
 // Update multiple documents
 const result = await client.updateMany<{ modifiedCount: number }>(
   'users',
-  [{ field: 'role', value: 'guest' }],
-  { active: false }
+  { active: false },
+  [{ field: 'role', value: 'guest' }]
 );
 
 // Find and update
 const foundAndUpdated = await client.findOneAndUpdate<User>(
   'users',
+  { lastLoginDate: new Date() },
   [{ field: 'email', value: 'user@example.com' }],
-  { lastLoginDate: new Date() }
 );
 ```
 
@@ -218,7 +218,7 @@ const foundAndDeleted = await client.findOneAndDelete<User>(
 import { createClient, SecureClientConfig } from 'hosby-ts';
 
 const secureConfig: SecureClientConfig = {
-  baseURL: 'https://api.example.com',
+  baseURL: 'https://api.hosby.io',
   privateKey: 'your-private-key',
   apiKeyId: 'your-api-key-id',
   projectName: 'your-project-name',

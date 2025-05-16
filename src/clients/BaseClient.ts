@@ -475,7 +475,7 @@ export class BaseClient {
       }
 
       if (!this.useSameToken) {
-        const newCsrfToken = response.headers.get('x-csrf-token') || response.headers.get('X-CSRF-Token');
+        const newCsrfToken = response.headers.get('x-csrf-token-hosby') || response.headers.get('X-CSRF-Token-Hosby');
         if (newCsrfToken && newCsrfToken !== this.csrfToken) {
           this.updateCSRFToken(newCsrfToken);
         }
@@ -535,7 +535,7 @@ export class BaseClient {
     };
 
     if (this.csrfToken) {
-      headers['X-CSRF-Token'] = this.csrfToken;
+      headers['X-CSRF-Token-Hosby'] = this.csrfToken;
 
       // Synchronize cookie with in-memory token in browser environments
       if (!this.isNode && this.csrfCookieName) {
