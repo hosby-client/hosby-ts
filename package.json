@@ -67,7 +67,7 @@
   "bugs": {
     "url": "https://github.com/hosby-client/hosby-ts/issues"
   },
-  "homepage": "https://github.com/hosby-client/hosby-client#readme",
+  "homepage": "https://github.com/hosby-client/hosby-ts#readme",
   "dependencies": {
     "crypto-js": "~4.2.0",
     "jsencrypt": "~3.3.2"
