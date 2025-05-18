@@ -1,6 +1,6 @@
 {
   "name": "hosby-ts",
-  "version": "1.3.0",
+  "version": "1.4.1",
   "description": "TypeScript client library to consume APIs created on Hosby.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -67,7 +67,7 @@
   "bugs": {
     "url": "https://github.com/hosby-client/hosby-ts/issues"
   },
-  "homepage": "https://github.com/hosby-client/hosby-client#readme",
+  "homepage": "https://github.com/hosby-client/hosby-ts#readme",
   "dependencies": {
     "crypto-js": "~4.2.0",
     "jsencrypt": "~3.3.2"

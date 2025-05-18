@@ -119,7 +119,7 @@ export class PatchQueryClient {
     async updateMany<T, D = unknown>(
         table: string,
         data: D,
-        filters: QueryFilter[],
+        filters?: QueryFilter[],
         options?: Pick<QueryOptions, 'populate' | 'limit'>
     ): Promise<ApiResponse<T>> {
         if (!table || typeof table !== 'string') {
