@@ -22,8 +22,8 @@ global.fetch = jest.fn().mockImplementation((url, options) => {
     headers: {
       get: jest.fn().mockImplementation((name) => {
         // Return a mock CSRF token when requested
-        if (name === 'X-CSRF-Token') {
-          return 'mock-csrf-token';
+        if (name === 'X-CSRF-Token-Hosby') {
+          return 'mock-csrf-token-hosby';
         }
         return null;
       })
@@ -33,7 +33,7 @@ global.fetch = jest.fn().mockImplementation((url, options) => {
       success: true,
       status: 200,
       message: 'CSRF token generated',
-      data: { token: 'mock-csrf-token' }
+      data: { token: 'mock-csrf-token-hosby' }
     })
   });
 });

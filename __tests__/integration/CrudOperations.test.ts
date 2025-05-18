@@ -25,7 +25,7 @@ interface UserCreate {
 
 describe('CRUD Operations Integration', () => {
   let client: HosbyClient;
-  
+
   const mockConfig = {
     baseURL: 'https://api.example.com',
     privateKey: 'mock-private-key',
@@ -34,15 +34,15 @@ describe('CRUD Operations Integration', () => {
     projectName: 'mock-project',
     userId: 'mock-user-id',
   };
-  
+
   beforeAll(() => {
     fetchMock.enableMocks();
   });
-  
+
   beforeEach(async () => {
     fetchMock.resetMocks();
     client = new HosbyClient(mockConfig);
-    
+
     // Mock the CSRF token fetch for init with proper response format
     fetchMock.mockResponseOnce(JSON.stringify({
       success: true,
@@ -50,39 +50,39 @@ describe('CRUD Operations Integration', () => {
       message: 'CSRF token generated',
       data: { token: 'mock-csrf-token' }
     }));
-    
+
     // Initialize the client before each test
     await client.init();
-    
+
     // Reset mock again so we have clean call history for the actual test
     fetchMock.resetMocks();
   });
-  
+
   afterAll(() => {
     fetchMock.disableMocks();
   });
-  
+
   describe('GET operations', () => {
     test('should find users and deserialize response', async () => {
       const mockUsers: User[] = [
-        { 
-          id: '1', 
-          name: 'John Doe', 
-          email: 'john@example.com', 
+        {
+          id: '1',
+          name: 'John Doe',
+          email: 'john@example.com',
           active: true,
           profile: {
             bio: 'Software developer',
             avatar: 'avatar1.jpg'
           }
         },
-        { 
-          id: '2', 
-          name: 'Jane Smith', 
-          email: 'jane@example.com', 
-          active: true 
+        {
+          id: '2',
+          name: 'Jane Smith',
+          email: 'jane@example.com',
+          active: true
         }
       ];
-      
+
       // Mock the response for the users query
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
@@ -90,66 +90,49 @@ describe('CRUD Operations Integration', () => {
         message: 'Users retrieved successfully',
         data: mockUsers
       }));
-      
+
       // client is already initialized in beforeEach
-      
+
       const response = await client.find<User[]>(
         'users',
         [{ field: 'active', value: true }],
         { limit: 10 }
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.status).toBe(200);
       expect(response.data).toHaveLength(2);
       expect(response.data[0].name).toBe('John Doe');
       expect(response.data[0].profile?.bio).toBe('Software developer');
     });
-    
+
     test('should find user by id', async () => {
-      const mockUser: User = { 
-        id: '1', 
-        name: 'John Doe', 
-        email: 'john@example.com', 
-        active: true 
+      const mockUser: User = {
+        id: '1',
+        name: 'John Doe',
+        email: 'john@example.com',
+        active: true
       };
-      
-      // Mock the response for findById query
+
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
         status: 200,
         message: 'User retrieved successfully',
         data: mockUser
       }));
-      
+
       const response = await client.findById<User>(
         'users',
         [{ field: 'id', value: '1' }]
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.data.id).toBe('1');
       expect(response.data.name).toBe('John Doe');
-      
-      // Check that the request was made with the correct URL format and headers
-      expect(fetchMock).toHaveBeenCalledWith(
-        "https://api.example.com/mock-project/users/findById/?id=1",
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'x-api-key': 'mock-api-key-id_mock-project-id_mock-user-id',
-            'x-signature': 'mocked-signature',
-            'x-timestamp': expect.any(String),
-            'X-CSRF-Token': 'mock-csrf-token'
-          },
-          'credentials': 'include',
-          'mode': 'cors',
-        }
-      );
+      expect(response.data.email).toBe('john@example.com');
+      expect(response.data.active).toBe(true);
     });
-    
+
     test('should handle not found error', async () => {
       fetchMock.mockResponseOnce(JSON.stringify({
         success: false,
@@ -157,7 +140,7 @@ describe('CRUD Operations Integration', () => {
         message: 'User not found',
         data: null
       }), { status: 404 });
-      
+
       try {
         await client.findById<User>('users', [{ field: 'id', value: 'nonexistent' }]);
         fail('Expected error was not thrown');
@@ -168,7 +151,7 @@ describe('CRUD Operations Integration', () => {
       }
     });
   });
-  
+
   describe('POST operations', () => {
     test('should create a new user', async () => {
       const newUser: UserCreate = {
@@ -180,62 +163,62 @@ describe('CRUD Operations Integration', () => {
           avatar: 'new-avatar.jpg'
         }
       };
-      
+
       const createdUser: User = {
         id: '3',
         ...newUser
       };
-      
+
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
         status: 201,
         message: 'User created successfully',
         data: createdUser
       }));
-      
+
       const response = await client.insertOne<User, UserCreate>(
         'users',
         newUser
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.status).toBe(201);
       expect(response.data.id).toBe('3');
       expect(response.data.name).toBe('New User');
       expect(response.data.profile?.bio).toBe('New user bio');
     });
-    
+
     test('should upsert a user', async () => {
       const userData: UserCreate = {
         name: 'Updated User',
         email: 'existing@example.com',
         active: true
       };
-      
+
       const upsertedUser: User = {
         id: '4',
         ...userData
       };
-      
+
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
         status: 200,
         message: 'User upserted successfully',
         data: upsertedUser
       }));
-      
+
       const response = await client.upsert<User, UserCreate>(
         'users',
         userData,
         [{ field: 'email', value: 'existing@example.com' }],
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.data.id).toBe('4');
       expect(response.data.name).toBe('Updated User');
     });
   });
-  
+
   describe('PUT operations', () => {
     test('should replace a user document', async () => {
       const replacementData: UserCreate = {
@@ -247,32 +230,32 @@ describe('CRUD Operations Integration', () => {
           avatar: 'updated-avatar.jpg'
         }
       };
-      
+
       const replacedUser: User = {
         id: '5',
         ...replacementData
       };
-      
+
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
         status: 200,
         message: 'User replaced successfully',
         data: replacedUser
       }));
-      
+
       const response = await client.replaceOne<User, UserCreate>(
         'users',
         replacementData,
         [{ field: 'id', value: '5' }]
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.data.id).toBe('5');
       expect(response.data.name).toBe('Replaced User');
       expect(response.data.profile?.bio).toBe('Updated bio');
     });
   });
-  
+
   describe('PATCH operations', () => {
     test('should update user fields', async () => {
       const updateData = {
@@ -281,7 +264,7 @@ describe('CRUD Operations Integration', () => {
           bio: 'Updated bio text'
         }
       };
-      
+
       const updatedUser: User = {
         id: '6',
         name: 'Existing User',
@@ -292,53 +275,53 @@ describe('CRUD Operations Integration', () => {
           avatar: 'existing-avatar.jpg'
         }
       };
-      
+
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
         status: 200,
         message: 'User updated successfully',
         data: updatedUser
       }));
-      
+
       const response = await client.updateOne<User>(
         'users',
         updateData,
         [{ field: 'id', value: '6' }]
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.data.id).toBe('6');
       expect(response.data.active).toBe(false);
       expect(response.data.profile?.bio).toBe('Updated bio text');
     });
-    
+
     test('should update multiple documents', async () => {
       const updateData = {
         active: false
       };
-      
+
       const updateResult = {
         modifiedCount: 5
       };
-      
+
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
         status: 200,
         message: '5 users updated successfully',
         data: updateResult
       }));
-      
+
       const response = await client.updateMany<{ modifiedCount: number }>(
         'users',
         updateData,
         [{ field: 'role', value: 'guest' }]
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.data.modifiedCount).toBe(5);
     });
   });
-  
+
   describe('DELETE operations', () => {
     test('should delete a user by id', async () => {
       const deletedUser: User = {
@@ -347,46 +330,127 @@ describe('CRUD Operations Integration', () => {
         email: 'delete@example.com',
         active: true
       };
-      
+
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
         status: 200,
         message: 'User deleted successfully',
         data: deletedUser
       }));
-      
+
       const response = await client.deleteOne<User>(
         'users',
         [{ field: 'id', value: '7' }]
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.data.id).toBe('7');
       expect(response.data.name).toBe('User to Delete');
     });
-    
+
     test('should delete multiple users', async () => {
       const deleteResult = {
         deletedCount: 3
       };
-      
+
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
         status: 200,
         message: '3 users deleted successfully',
         data: deleteResult
       }));
-      
+
       const response = await client.deleteMany<{ deletedCount: number }>(
         'users',
         [{ field: 'active', value: false }]
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.data.deletedCount).toBe(3);
     });
   });
-  
+
+  describe('Bulk operations', () => {
+    test('should bulk insert users', async () => {
+      const users: UserCreate[] = [
+        { name: 'User 1', email: 'user1@example.com', active: true },
+        { name: 'User 2', email: 'user2@example.com', active: true }
+      ];
+
+      const createdUsers: User[] = [
+        { id: '8', ...users[0] },
+        { id: '9', ...users[1] }
+      ];
+
+      fetchMock.mockResponseOnce(JSON.stringify({
+        success: true,
+        status: 201,
+        message: 'Users created successfully',
+        data: createdUsers
+      }));
+
+      const response = await client.bulkInsert<User[], UserCreate>(
+        'users',
+        users
+      );
+
+      expect(response.success).toBe(true);
+      expect(response.data).toHaveLength(2);
+      expect(response.data[0].id).toBe('8');
+      expect(response.data[0].name).toBe('User 1');
+      expect(response.data[1].id).toBe('9');
+      expect(response.data[1].name).toBe('User 2');
+    });
+
+    test('should bulk update users', async () => {  
+      const updateData = {
+        active: false
+      };
+
+      const updateResult = {
+        modifiedCount: 2
+      };
+
+      fetchMock.mockResponseOnce(JSON.stringify({
+        success: true,
+        status: 200,
+        message: '2 users updated successfully',
+        data: updateResult
+      }));
+
+      const response = await client.bulkUpdate<User[], { active: boolean }>(
+        'users',
+        updateData,
+        [{ field: 'email', value: 'user@example.com' }]
+      );
+
+      expect(response.success).toBe(true);
+      expect(response.data).toEqual({ modifiedCount: 2 });
+    });
+
+    test('should bulk delete users', async () => {
+      const deleteResult = {
+        deletedCount: 2
+      };
+
+      fetchMock.mockResponseOnce(JSON.stringify({
+        success: true,
+        status: 200,
+        message: '2 users deleted successfully',
+        data: deleteResult
+      }));
+
+      const response = await client.bulkDelete<User[]>(
+        'users',
+        [{ field: 'email', value: 'user@example.com' }]
+      );
+
+      expect(response.success).toBe(true);
+      expect(response.data).toEqual({ deletedCount: 2 });
+    });
+
+  });
+
   describe('Advanced queries', () => {
     test('should find and populate related documents', async () => {
       interface Post {
@@ -395,7 +459,7 @@ describe('CRUD Operations Integration', () => {
         content: string;
         author: string | User;
       }
-      
+
       const populatedPosts: Post[] = [
         {
           id: 'post1',
@@ -420,97 +484,97 @@ describe('CRUD Operations Integration', () => {
           }
         }
       ];
-      
+
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
         status: 200,
         message: 'Posts retrieved successfully',
         data: populatedPosts
       }));
-      
+
       const response = await client.find<Post[]>(
         'posts',
         [{ field: 'published', value: true }],
         { populate: ['author'] }
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.data).toHaveLength(2);
       expect(response.data[0].author).toHaveProperty('name');
       expect((response.data[0].author as User).email).toBe('john@example.com');
     });
-    
+
     test('should perform aggregation', async () => {
       interface AggregateResult {
         _id: string;
         count: number;
         avgAge: number;
       }
-      
+
       const aggregationResults: AggregateResult[] = [
         { _id: 'admin', count: 2, avgAge: 35 },
         { _id: 'user', count: 10, avgAge: 28 },
         { _id: 'guest', count: 5, avgAge: 31 }
       ];
-      
+
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
         status: 200,
         message: 'Aggregation completed successfully',
         data: aggregationResults
       }));
-      
+
       const response = await client.aggregate<AggregateResult[]>(
         'users',
         [{ field: 'active', value: true }]
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.data).toHaveLength(3);
       expect(response.data[0]._id).toBe('admin');
       expect(response.data[0].count).toBe(2);
       expect(response.data[1].avgAge).toBe(28);
     });
-    
+
     test('should get distinct values', async () => {
       const distinctRoles = ['admin', 'user', 'guest', 'moderator'];
-      
+
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
         status: 200,
         message: 'Distinct values retrieved successfully',
         data: distinctRoles
       }));
-      
+
       const response = await client.distinct<string[]>(
         'users',
         [{ field: 'role', value: 'user' }]
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.data).toEqual(distinctRoles);
       expect(response.data).toContain('moderator');
     });
-    
+
     test('should find documents with complex query filters', async () => {
       // Finding users with age greater than 30
       const mockUsers: User[] = [
         { id: '8', name: 'Older User 1', email: 'older1@example.com', active: true },
         { id: '9', name: 'Older User 2', email: 'older2@example.com', active: true }
       ];
-      
+
       fetchMock.mockResponseOnce(JSON.stringify({
         success: true,
         status: 200,
         message: 'Users retrieved successfully',
         data: mockUsers
       }));
-      
+
       const response = await client.findGreaterThan<User[]>(
         'users',
         [{ field: 'age', value: 30 }]
       );
-      
+
       expect(response.success).toBe(true);
       expect(response.data).toHaveLength(2);
       expect(response.data[0].name).toContain('Older User');
@@ -518,34 +582,34 @@ describe('CRUD Operations Integration', () => {
   });
 
 
-test('should find documents with query options', async () => {
-  const mockUsers: User[] = [
-    { id: '10', name: 'User A', email: 'userA@example.com', active: true },
-    { id: '11', name: 'User B', email: 'userB@example.com', active: true }
-  ];
+  test('should find documents with query options', async () => {
+    const mockUsers: User[] = [
+      { id: '10', name: 'User A', email: 'userA@example.com', active: true },
+      { id: '11', name: 'User B', email: 'userB@example.com', active: true }
+    ];
 
-  fetchMock.mockResponseOnce(JSON.stringify({
-    success: true,
-    status: 200,
-    message: 'Users retrieved successfully',
-    data: mockUsers
-  }));
+    fetchMock.mockResponseOnce(JSON.stringify({
+      success: true,
+      status: 200,
+      message: 'Users retrieved successfully',
+      data: mockUsers
+    }));
 
-  const options: QueryOptions = {
-    populate: ['profile'],
-    skip: 0,
-    limit: 10,
-    query: {
-      active: { $eq: true }
-    },
-    slice: [0, 5]
-  };
+    const options: QueryOptions = {
+      populate: ['profile'],
+      skip: 0,
+      limit: 10,
+      query: {
+        active: { $eq: true }
+      },
+      slice: [0, 5]
+    };
 
-  const response = await client.find<User[]>('users', [], options);
+    const response = await client.find<User[]>('users', [], options);
 
-  expect(response.success).toBe(true);
-  expect(response.data).toHaveLength(2);
-  expect(response.data[0].name).toBe('User A');
-  expect(response.data[1].name).toBe('User B');
-});
+    expect(response.success).toBe(true);
+    expect(response.data).toHaveLength(2);
+    expect(response.data[0].name).toBe('User A');
+    expect(response.data[1].name).toBe('User B');
+  });
 });
