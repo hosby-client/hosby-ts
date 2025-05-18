@@ -1,5 +1,5 @@
 import { BaseClient } from '../BaseClient';
-import { ApiResponse, QueryFilter, QueryOptions } from '../../types';
+import { ApiResponse, QueryFilter } from '../../types';
 
 export class BulkQueryClient {
     constructor(private readonly baseClient: BaseClient) { }
