@@ -38,7 +38,7 @@ describe('BaseClient', () => {
             headers: {
                 get: jest.fn().mockReturnValue(null)
             },
-            json: async () => ({ success: true, data: { token: 'mock-csrf-token' } }),
+            json: async () => ({ success: true, data: { token: 'mock-csrf-token-hosby' } }),
             status: 200
         });
     });
@@ -224,7 +224,7 @@ describe('BaseClient', () => {
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'X-CSRF-Token': 'mock-csrf-token',
+                        'X-CSRF-Token-Hosby': 'mock-csrf-token-hosby',
                         'x-api-key': 'test-api-key-id_test-project-id_test-user-id',
                         'x-signature': 'mocked-signature',
                         'x-timestamp': expect.any(String)

@@ -26,9 +26,9 @@ describe('Authentication Security Tests', () => {
         (global.fetch as jest.Mock).mockResolvedValue({
             ok: true,
             headers: {
-                get: jest.fn().mockReturnValue('mock-csrf-token')
+                get: jest.fn().mockReturnValue('mock-csrf-token-hosby')
             },
-            json: async () => ({ success: true, data: { token: 'mock-csrf-token' } }),
+            json: async () => ({ success: true, data: { token: 'mock-csrf-token-hosby' } }),
             status: 200
         });
     });
@@ -99,7 +99,7 @@ describe('Authentication Security Tests', () => {
             (global.fetch as jest.Mock).mockResolvedValue({
                 ok: true,
                 headers: {
-                    get: jest.fn().mockReturnValue('mock-csrf-token')
+                    get: jest.fn().mockReturnValue('mock-csrf-token-hosby')
                 },
                 json: async () => ({ success: true, data: { count: 5 } }),
                 status: 200
@@ -110,7 +110,7 @@ describe('Authentication Security Tests', () => {
 
             // Check that CSRF token is included
             const requestHeaders = (global.fetch as jest.Mock).mock.calls[0][1].headers;
-            expect(requestHeaders['X-CSRF-Token']).toBe('mock-csrf-token');
+            expect(requestHeaders['X-CSRF-Token-Hosby']).toBe('mock-csrf-token-hosby');
             
             // Clean up the mock
             if (global.document) {
@@ -165,7 +165,7 @@ describe('Authentication Security Tests', () => {
             (global.fetch as jest.Mock).mockResolvedValue({
                 ok: true,
                 headers: {
-                    get: jest.fn().mockReturnValue('mock-csrf-token')
+                    get: jest.fn().mockReturnValue('mock-csrf-token-hosby')
                 },
                 json: async () => ({ success: true, data: {} }),
                 status: 200
@@ -175,7 +175,7 @@ describe('Authentication Security Tests', () => {
 
             const requestConfig = (global.fetch as jest.Mock).mock.calls[0][1];
             const headers = requestConfig.headers as Record<string, string>;
-            expect(headers.Authorization).toBe('Bearer mock-csrf-token');
+            expect(headers.Authorization).toBe('Bearer mock-csrf-token-hosby');
             
             // Clean up the mock if needed
             if (global.document) {
@@ -208,7 +208,7 @@ describe('Authentication Security Tests', () => {
             (global.fetch as jest.Mock).mockResolvedValue({
                 ok: true,
                 headers: {
-                    get: jest.fn().mockReturnValue('mock-csrf-token')
+                    get: jest.fn().mockReturnValue('mock-csrf-token-hosby')
                 },
                 json: async () => ({ success: true, data: {} }),
                 status: 200
@@ -348,7 +348,7 @@ describe('Authentication Security Tests', () => {
             (global.fetch as jest.Mock).mockResolvedValue({
                 ok: true,
                 headers: {
-                    get: jest.fn().mockReturnValue('mock-csrf-token')
+                    get: jest.fn().mockReturnValue('mock-csrf-token-hosby')
                 },
                 json: async () => ({ success: true, data: {} }),
                 status: 200
@@ -379,7 +379,7 @@ describe('Authentication Security Tests', () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({
                 ok: true,
                 headers: {
-                    get: jest.fn().mockReturnValue('mock-csrf-token')
+                    get: jest.fn().mockReturnValue('mock-csrf-token-hosby')
                 },
                 json: async () => ({ success: true, data: {} }),
                 status: 200
@@ -445,7 +445,7 @@ describe('Authentication Security Tests', () => {
                     method: 'GET',
                     headers: expect.objectContaining({
                         'Content-Type': 'application/json',
-                        'X-CSRF-Token': 'mock-csrf-token'
+                        'X-CSRF-Token-Hosby': 'mock-csrf-token-hosby'
                     })
                 })
             );
