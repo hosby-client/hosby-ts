@@ -74,6 +74,10 @@ export class HosbyClient {
 
     this.login = (...args) => this.crudClient.auth.login(...args)
     this.logout = (...args) => this.crudClient.auth.logout(...args);
+
+    this.bulkInsert = (...args) => this.crudClient.bulk.bulkInsert(...args);
+    this.bulkUpdate = (...args) => this.crudClient.bulk.bulkUpdate(...args);
+    this.bulkDelete = (...args) => this.crudClient.bulk.bulkDelete(...args);
   }
 
   /**
@@ -1343,6 +1347,113 @@ export class HosbyClient {
    * ```
    */
   public findOneAndDelete: typeof CrudClient.prototype.delete.findOneAndDelete;
+
+  /**
+   * Perform bulk insert operations on documents
+   * @template T - Type of the returned documents array
+   * @param table - Name of the table/collection
+   * @param payload - Array of documents to insert
+   * @returns Promise resolving to ApiResponse containing:
+   *   - success: Whether insert was successful (true/false)
+   *   - status: HTTP status code (201 for success)
+   *   - message: Response message describing the result
+   *   - data: Array of inserted documents of type T
+   * @throws Error if table or payload is missing/empty
+   * @example
+   * ```typescript
+   * interface User {
+   *   id: string;
+   *   name: string;
+   *   email: string;
+   * }
+   * 
+   * const result = await bulkClient.bulkInsert<User[]>(
+   *   'users',
+   *   [
+   *     { name: 'John Doe', email: 'john@example.com' },
+   *     { name: 'Jane Smith', email: 'jane@example.com' }
+   *   ],
+   * );
+   * 
+   * if (result.success) {
+   *   const insertedUsers = result.data;
+   *   console.log(`Inserted ${insertedUsers.length} users with status ${result.status}`);
+   * }
+   * ```
+   */
+  public bulkInsert: typeof CrudClient.prototype.bulk.bulkInsert;
+
+  /**
+   * Perform bulk update operations on documents  
+   * @template T - Type of the returned documents array
+   * @param table - Name of the table/collection
+   * @param queryFilters - Array of filter criteria for querying
+   * @param data - Array of documents to update
+   * @returns Promise resolving to ApiResponse containing:
+   *   - success: Whether update was successful (true/false)
+   *   - status: HTTP status code (200 for success)
+   *   - message: Response message describing the result
+   *   - data: Array of updated documents of type T
+   * @throws Error if table or queryFilters are missing/empty
+   * @example
+   * ```typescript
+   * interface User {
+   *   id: string;
+   *   name: string;
+   *   email: string;
+   * }
+   * 
+    * const result = await bulkClient.bulkUpdate<User[]>(
+   *   'users',
+   *   [
+   *     { field: 'email', value: 'user@example.com' },
+   *     { field: 'active', value: false }
+   *   ],
+   *   { populate: ['profile'] }
+   * );
+   * 
+   * if (result.success) {
+   *   const updatedUsers = result.data;
+   *   console.log(`Updated ${updatedUsers.length} users with status ${result.status}`);
+   * }
+   * ```
+   */
+  public bulkUpdate: typeof CrudClient.prototype.bulk.bulkUpdate;
+
+  /**
+   * Perform bulk delete operations on documents
+   * @template T - Type of the returned documents array
+   * @param table - Name of the table/collection
+   * @param queryFilters - Array of filter criteria for querying
+   * @returns Promise resolving to ApiResponse containing:
+   *   - success: Whether delete was successful (true/false)
+   *   - status: HTTP status code (200 for success)
+   *   - message: Response message describing the result
+   *   - data: Array of deleted documents of type T
+   * @throws Error if table or queryFilters are missing/empty
+   * @example
+   * ```typescript
+   * interface User {
+   *   id: string;
+   *   name: string;  
+   *   email: string;
+   * }
+   * 
+   * const result = await bulkClient.bulkDelete<User[]>(
+   *   'users',
+   *   [
+   *     { field: 'email', value: 'user@example.com' },
+   *     { field: 'active', value: false  }
+   *   ],
+   * );
+   * 
+   * if (result.success) {
+   *   const deletedUsers = result.data;
+   *   console.log(`Deleted ${deletedUsers.length} users with status ${result.status}`);
+   * }
+   * ```
+   */
+  public bulkDelete: typeof CrudClient.prototype.bulk.bulkDelete;
 }
 
 /**

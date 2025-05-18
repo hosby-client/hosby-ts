@@ -4,6 +4,7 @@ import { PatchQueryClient } from "./patch.query";
 import { PostQueryClient } from "./post.query";
 import { PutQueryClient } from "./put.query";
 import { DeleteQueryClient } from "./delete.query";
+import { BulkQueryClient } from "./bulk.query";
 import { AuthClient } from "../auth/auth";
 
 /**
@@ -80,6 +81,12 @@ export class HosbyClient {
     public readonly delete: DeleteQueryClient;
 
     /**
+     * Client for handling bulk operations
+     * @public
+     */
+    public readonly bulk: BulkQueryClient;
+
+    /**
      * Creates a new HosbyClient instance
      * @param baseClient - Configured BaseClient instance for making HTTP requests
      * @throws {Error} When baseClient is not provided
@@ -95,6 +102,7 @@ export class HosbyClient {
         this.patch = new PatchQueryClient(this.baseClient);
         this.delete = new DeleteQueryClient(this.baseClient);
         this.auth = new AuthClient(this.baseClient);
+        this.bulk = new BulkQueryClient(this.baseClient);
     }
 }
 
@@ -131,6 +139,6 @@ export type { PutQueryClient };
 export type { PatchQueryClient };
 export type { DeleteQueryClient };
 export type { AuthClient };
-
+export type { BulkQueryClient };
 // Default export for traditional module imports
 export default HosbyClient;
