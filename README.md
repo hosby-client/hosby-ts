@@ -37,42 +37,50 @@ pnpm add hosby-ts
 ## Quick Start
 
 ```typescript
-import { HosbyClient } from 'hosby-ts';
+import { HosbyClient } from "hosby-ts";
 
-// Create a client instance
-const client = new HosbyClient({
-  baseURL: 'https://api.hosby.io',
-  privateKey: 'your-private-key',
-  apiKeyId: 'your-api-key-id',
-  projectName: 'your-project-name',
-  projectId: 'your-project-id',
-  userId: 'your-user-id'
-});
+class HosbyQuery {
+  private readonly _client: HosbyClient;
+  private isInitialized = false;
 
-// Initialize the client (required before making requests)
-await client.init();
+  constructor() {
+    this._client = new HosbyClient({
+      baseURL: process.env.HOSBY_BASE_URL || "",
+      privateKey: process.env.HOSBY_PRIVATE_KEY || "",
+      apiKeyId: process.env.HOSBY_API_KEY_ID || "",
+      projectName: process.env.HOSBY_PROJECT_NAME || "",
+      projectId: process.env.HOSBY_PROJECT_ID || "",
+      userId: process.env.HOSBY_USER_ID || "",
+    });
 
-// Define your data types for type safety
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  active: boolean;
+    this.initialize().catch(error => {
+      console.error("Failed to initialize Hosby client:", error);
+      throw new Error("Hosby client initialization failed");
+    });
+  }
+
+  private async initialize(): Promise<void> {
+    if (this.isInitialized) return;
+
+    try {
+      await this._client.init();
+      this.isInitialized = true;
+      console.log("Hosby client initialized successfully");
+    } catch (error) {
+      console.error("Error initializing Hosby client:", error);
+      throw new Error("Failed to initialize Hosby client. Check your connection and credentials.");
+    }
+  }
+ 
+  public get client(): HosbyClient {
+    if (!this.isInitialized) {
+      throw new Error("Hosby client not initialized. Ensure the service is loaded before use.");
+    }
+    return this._client;
+  }
 }
 
-// Example: Find active users
-const response = await client.find<User[]>(
-  'users',
-  [{ field: 'active', value: true }],
-  { limit: 10 }
-);
-
-if (response.success) {
-  const users = response.data;
-  console.log(`Found ${users.length} active users`);
-} else {
-  console.error(`Error: ${response.message}`);
-}
+export const hosbyQuery = new HosbyQuery().client;
 ```
 
 ## CRUD Operations
